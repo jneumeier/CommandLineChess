@@ -31,6 +31,9 @@ bool ValidateEntry(string strMove);
 bool MakeMove(string strMove, bool blnWhiteOrBlackTurn, Board *clsBoard, string *strMessageToUser);
 bool CheckForPieceAscii(int intPieceAscii);
 bool CheckForSquareAscii(int intColumn, int intRow);
+bool MovePiece_Pawn(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser);
+bool MovePiece_3Char(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser);
+bool MovePiece_Capture(char chrPieceMoving, char chrSquareLetter_Dest, char chrSquareNumber_Dest, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser);
 
 
 // --------------------------------------------------------------------------------
@@ -110,7 +113,7 @@ string GetMove()
 
 // --------------------------------------------------------------------------------
 // Name: ValidateEntry
-// Abstract: Validates the entry against max possible length and permitted chars
+// Abstract: Validates the entry only against max possible length and permitted chars
 // --------------------------------------------------------------------------------
 bool ValidateEntry(string strMove)
 {
@@ -128,7 +131,8 @@ bool ValidateEntry(string strMove)
 		blnValidEntry = true;
 	}
 
-	else if (strMove.length() > 6) { blnValidEntry = false; } // no possible move above 6 chars
+	// no possible valid string representing a move that is above 6 chars
+	else if (strMove.length() > 6) { blnValidEntry = false; }
 
 	else
 	{
@@ -161,8 +165,7 @@ bool ValidateEntry(string strMove)
 
 // --------------------------------------------------------------------------------
 // Name: MakeMove
-// Abstract: Attempts to make the move. If attempted move is not possible, the user 
-//			 gets an error message and is prompted to make another move.
+// Abstract: Analyzes user entry and calls correct type of move depending on format
 // --------------------------------------------------------------------------------
 bool MakeMove(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string *strErrorMessageToUser)
 {
@@ -171,211 +174,28 @@ bool MakeMove(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string 
 	int intPieceStartIndex = 0;
 
 	// If given move is in format--> example: Ke4, then, make the move.
-	if (strMove.length() == 3 && CheckForPieceAscii(strMove[0]) == true &&
-		CheckForSquareAscii(strMove[1], strMove[2]) == true)
+	if (strMove.length() == 3 && CheckForPieceAscii(strMove[0]) == true && CheckForSquareAscii(strMove[1], strMove[2]) == true)
 	{
-		// find the index for the square to move to
-		intDestinationIndex = (*clsBoard).GetPositionIndex(strMove[1], strMove[2]);
-
-		// find the index for the square of the given piece. Will equal -1 if nonexistent.
-		// -2 if more than one of same type piece can get to the square.
-		// This also validates if the piece can make the move.
-		intPieceStartIndex = (*clsBoard).GetPieceIndex(strMove[0], intDestinationIndex, blnWhiteOrBlackTurn);
-
-		// Check if there is any piece in the way during moving (Knight is excluded by rule)
-		if (strMove[0] != 'N' && intPieceStartIndex != -1)
-		{
-			if ((*clsBoard).CheckMovePath(intPieceStartIndex, intDestinationIndex) == false)
-			{
-				intPieceStartIndex = -1;
-				*strErrorMessageToUser += "There are pieces in the way of your desired path. ";
-			}	
-		}
-
-		// check if there is a piece already on target square
-		if ((*clsBoard).m_vecPositions[intDestinationIndex].ReturnNotationName() != '-' && intPieceStartIndex != -1)
-		{
-			if ((*clsBoard).m_vecPositions[intDestinationIndex].ReturnPieceColor() == blnWhiteOrBlackTurn)
-			{
-				*strErrorMessageToUser += "Your own piece is on that destination square. ";
-			}
-			else { *strErrorMessageToUser += "You must notate this move as a capture. "; }
-
-			intPieceStartIndex = -1;
-		}
-
-		// Give error messages if move is invalid, else, make the move!
-		if (intPieceStartIndex == -1) { *strErrorMessageToUser += "Attempted move is invalid. "; blnMoveSuccessful = false; }
-		else if (intPieceStartIndex == -2)
-		{
-			*strErrorMessageToUser += "More than one of that type of piece can make that move. Define the starting square in your notation. Ex. Rad4, R4d4, Ra4d4, Raxd4, etc. ";
-			blnMoveSuccessful = false;
-		}
-		else
-		{
-			// make the move. Simple swap for now. Will elaborate later.
-			(*clsBoard).SwapSquares(intPieceStartIndex, intDestinationIndex);
-
-			blnMoveSuccessful = true;
-		}
+		blnMoveSuccessful = MovePiece_3Char(strMove, blnWhiteOrBlackTurn, clsBoard, strErrorMessageToUser);
 	}
 
-	// If given move is in format--> example: e4, then, make the move. (this is for pawns only)
+	// Entry format ex. e4, make the move. (this is for pawns only)
 	else if (strMove.length() == 2 && CheckForSquareAscii(strMove[0], strMove[1]) == true)
 	{
-		// find the index for the square to move to
-		intDestinationIndex = (*clsBoard).GetPositionIndex(strMove[0], strMove[1]);
-
-		// search for a pawn one or two squares behind the desired move
-		// if white
-		if (blnWhiteOrBlackTurn == true)
-		{
-			// search for a pawn one square behind desired move
-			if ((*clsBoard).m_vecPositions[intDestinationIndex + 8].ReturnNotationName() == 'P' &&
-				(*clsBoard).m_vecPositions[intDestinationIndex + 8].ReturnPieceColor() == blnWhiteOrBlackTurn)
-			{
-				intPieceStartIndex = intDestinationIndex + 8;
-			}
-
-			// search for a pawn two squares behind desired move, AND only if the pawn is in its original row (hasn't moved yet)
-			else if ((*clsBoard).m_vecPositions[intDestinationIndex + 16].ReturnNotationName() == 'P' &&
-				(intDestinationIndex + 16) >= 48 && (intDestinationIndex + 16) <= 55 &&
-				(*clsBoard).m_vecPositions[intDestinationIndex - 16].ReturnPieceColor() == blnWhiteOrBlackTurn)
-			{
-				intPieceStartIndex = intDestinationIndex + 16;
-			}
-
-			else { intPieceStartIndex = -1; }
-		}
-
-		// if black
-		if (blnWhiteOrBlackTurn == false)
-		{
-			// search for a pawn one square behind desired move
-			if ((*clsBoard).m_vecPositions[intDestinationIndex - 8].ReturnNotationName() == 'P' &&
-				(*clsBoard).m_vecPositions[intDestinationIndex - 8].ReturnPieceColor() == blnWhiteOrBlackTurn)
-			{
-				intPieceStartIndex = intDestinationIndex - 8;
-			}
-
-			// search for a pawn two squares behind desired move, AND only if the pawn is in its original row (hasn't moved yet)
-			else if ((*clsBoard).m_vecPositions[intDestinationIndex - 16].ReturnNotationName() == 'P' &&
-				(intDestinationIndex - 16) >= 8 && (intDestinationIndex - 16) <= 15 &&
-				(*clsBoard).m_vecPositions[intDestinationIndex - 16].ReturnPieceColor() == blnWhiteOrBlackTurn)
-			{
-				intPieceStartIndex = intDestinationIndex - 16;
-			}
-
-			else { intPieceStartIndex = -1; }
-		}
-
-		// if landing position already has a piece on it, don't allow the move
-		if ((*clsBoard).GetNotationName(intDestinationIndex) != '-') { intPieceStartIndex = -1; }
-
-		// Give error messages if move is invalid, else, make the move!
-		if (intPieceStartIndex == -1) { *strErrorMessageToUser += "Attempted move is invalid. "; blnMoveSuccessful = false; }
-
-		else
-		{
-			// make the move. Simple swap for now. Will elaborate later.
-			(*clsBoard).SwapSquares(intPieceStartIndex, intDestinationIndex);
-
-			blnMoveSuccessful = true;
-		}
+		blnMoveSuccessful = MovePiece_Pawn(strMove, blnWhiteOrBlackTurn, clsBoard, strErrorMessageToUser);
 	}
 
-	// If given move is in format--> example: Bxe5, then, make the move.
-	else if (strMove.length() == 4 && CheckForPieceAscii(strMove[0]) == true && CheckForSquareAscii(strMove[2], strMove[3]) == true && strMove[1] == 'x')
+	// Entry format--> ex. Bxe5, or w/ pawn (exd5)---then make the move.
+	else if (strMove.length() == 4 && (CheckForPieceAscii(strMove[0]) == true || ((strMove[0]) >= 97 && (strMove[0]) <= 104)) && CheckForSquareAscii(strMove[2], strMove[3]) == true && strMove[1] == 'x')
 	{
-		// find the index for the square to move to
-		intDestinationIndex = (*clsBoard).GetPositionIndex(strMove[2], strMove[3]);
-
-		// find the index for the square of the given piece. Will equal -1 if nonexistent.
-		// -2 if more than one of same type piece can get to the square.
-		// This also validates if the piece can make the move.
-		intPieceStartIndex = (*clsBoard).GetPieceIndex(strMove[0], intDestinationIndex, blnWhiteOrBlackTurn);
-
-		// check if there is nothing on target square
-		if ((*clsBoard).GetNotationName(intDestinationIndex) == '-')
-		{
-			*strErrorMessageToUser += "The requested capture has no piece at destination. ";
-			intPieceStartIndex = -1;
-		}
-
-		// check if a piece of the player's color is on the target square
-		if ((*clsBoard).GetPieceColor(intDestinationIndex) == blnWhiteOrBlackTurn &&
-			(*clsBoard).GetNotationName(intDestinationIndex) != '-')
-		{
-			*strErrorMessageToUser += "Your own piece is on that destination square. ";
-			intPieceStartIndex = -1;
-		}
-
-		// Give error messages if move is invalid, else, make the move!
-		if (intPieceStartIndex == -1) { *strErrorMessageToUser += "Attempted move is invalid. "; blnMoveSuccessful = false; }
-		else if (intPieceStartIndex == -2)
-		{
-			*strErrorMessageToUser += "More than one of that type of piece can make that move. Define the starting square in your notation. Ex. Rad4, R4d4, Ra4d4, Raxd4, etc. ";
-			blnMoveSuccessful = false;
-		}
-		else
-		{
-			// make the move. Simple swap for now. Will elaborate later.
-			(*clsBoard).CapturePiece(intPieceStartIndex, intDestinationIndex);
-
-			blnMoveSuccessful = true;
-		}
+		blnMoveSuccessful = MovePiece_Capture(strMove[0], strMove[2], strMove[3], blnWhiteOrBlackTurn, clsBoard, strErrorMessageToUser);
 	}
-
-	// If given move is in format--> example: dxe5, then, make the move. (this is for pawn capture, only)
-	else if (strMove.length() == 4 && (strMove[0]) >= 97 && (strMove[0]) <= 104 && CheckForSquareAscii(strMove[2], strMove[3]) == true && strMove[1] == 'x')
-	{
-		// find the index for the square to move to
-		intDestinationIndex = (*clsBoard).GetPositionIndex(strMove[2], strMove[3]);
-
-		// find the index for the square of the given piece. Will equal -1 if nonexistent.
-		// This also validates if the piece can make the move.
-		intPieceStartIndex = (*clsBoard).GetPawnIndex(strMove[0], intDestinationIndex, blnWhiteOrBlackTurn);
-
-		// check if there is nothing on target square
-		if ((*clsBoard).GetNotationName(intDestinationIndex) == '-')
-		{
-			*strErrorMessageToUser += "The requested capture has no piece at destination. ";
-			intPieceStartIndex = -1;
-		}
-
-		// check if a piece of the player's color is on the target square
-		if ((*clsBoard).GetPieceColor(intDestinationIndex) == blnWhiteOrBlackTurn &&
-			(*clsBoard).GetNotationName(intDestinationIndex) != '-')
-		{
-			*strErrorMessageToUser += "Your own piece is on that destination square. ";
-			intPieceStartIndex = -1;
-		}
-
-		// prevent the player from capturing forward with the pawn
-		if ((intDestinationIndex - intPieceStartIndex) % 8 == 0)
-		{
-			intPieceStartIndex = -1;
-		}
-
-		// Give error messages if move is invalid, else, make the move!
-		if (intPieceStartIndex == -1) { *strErrorMessageToUser += "Attempted move is invalid. "; blnMoveSuccessful = false; }
-		else
-		{
-			// make the move. Simple swap for now. Will elaborate later.
-			(*clsBoard).CapturePiece(intPieceStartIndex, intDestinationIndex);
-
-			blnMoveSuccessful = true;
-		}
-	}
-
-
 
 	// If given move is in format--> example: Bae5, then, make the move.
 	// If given move is in format--> example: Qa4e5, then, make the move.
 	// If given move is in format--> example: B1e5, then, make the move.
 	// If given move is in format--> example: Bfxe5, then, make the move.
 	// If given move is in format--> example: Bf4xe5, then, make the move.
-
 
 	return blnMoveSuccessful;
 }
@@ -417,4 +237,178 @@ bool CheckForSquareAscii(int intColumn, int intRow)
 	}
 	
 	return blnValidSquare;
+}
+
+// --------------------------------------------------------------------------------
+// Name: MakeMove_Pawn
+// Abstract: Moves a pawn on the board
+// --------------------------------------------------------------------------------
+bool MovePiece_Pawn(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser)
+{
+	bool blnMoveSuccessful = false;
+	int intDestinationIndex = 0;
+	int intPieceStartIndex = 0;
+
+	// find the index for the square to move to
+	intDestinationIndex = (*clsBoard).GetPositionIndex(strMove[0], strMove[1]);
+
+	// search for a pawn one or two squares behind the desired move
+	// if white
+	if (blnWhiteOrBlackTurn == true)
+	{
+		// search for a pawn one square behind desired move
+		if ((*clsBoard).m_vecPositions[intDestinationIndex + 8].ReturnNotationName() == 'P' &&
+			(*clsBoard).m_vecPositions[intDestinationIndex + 8].ReturnPieceColor() == blnWhiteOrBlackTurn)
+		{
+			intPieceStartIndex = intDestinationIndex + 8;
+		}
+
+		// search for a pawn two squares behind desired move, AND only if the pawn is in its original row (hasn't moved yet)
+		else if ((*clsBoard).m_vecPositions[intDestinationIndex + 16].ReturnNotationName() == 'P' &&
+			(intDestinationIndex + 16) >= 48 && (intDestinationIndex + 16) <= 55 &&
+			(*clsBoard).m_vecPositions[intDestinationIndex - 16].ReturnPieceColor() == blnWhiteOrBlackTurn)
+		{
+			intPieceStartIndex = intDestinationIndex + 16;
+		}
+
+		else { intPieceStartIndex = -1; }
+	}
+
+	// if black
+	if (blnWhiteOrBlackTurn == false)
+	{
+		// search for a pawn one square behind desired move
+		if ((*clsBoard).m_vecPositions[intDestinationIndex - 8].ReturnNotationName() == 'P' &&
+			(*clsBoard).m_vecPositions[intDestinationIndex - 8].ReturnPieceColor() == blnWhiteOrBlackTurn)
+		{
+			intPieceStartIndex = intDestinationIndex - 8;
+		}
+
+		// search for a pawn two squares behind desired move, AND only if the pawn is in its original row (hasn't moved yet)
+		else if ((*clsBoard).m_vecPositions[intDestinationIndex - 16].ReturnNotationName() == 'P' &&
+			(intDestinationIndex - 16) >= 8 && (intDestinationIndex - 16) <= 15 &&
+			(*clsBoard).m_vecPositions[intDestinationIndex - 16].ReturnPieceColor() == blnWhiteOrBlackTurn)
+		{
+			intPieceStartIndex = intDestinationIndex - 16;
+		}
+
+		else { intPieceStartIndex = -1; }
+	}
+
+	// if landing position already has a piece on it, don't allow the move
+	if ((*clsBoard).GetNotationName(intDestinationIndex) != '-') { intPieceStartIndex = -1; }
+
+	// Give error messages if move is invalid, else, make the move!
+	if (intPieceStartIndex == -1) { *strErrorMessageToUser += "Attempted move is invalid. "; blnMoveSuccessful = false; }
+
+	else
+	{
+		// make the move. Simple swap for now. Will elaborate later.
+		(*clsBoard).SwapSquares(intPieceStartIndex, intDestinationIndex);
+
+		blnMoveSuccessful = true;
+	}
+
+	return blnMoveSuccessful;
+}
+
+bool MovePiece_3Char(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser)
+{
+	bool blnMoveSuccessful = false;
+	int intDestinationIndex = 0;
+	int intPieceStartIndex = 0;
+
+	// find the index for the square to move to
+	intDestinationIndex = (*clsBoard).GetPositionIndex(strMove[1], strMove[2]);
+
+	// find the index for the square of the given piece. Will equal -1 if nonexistent.
+	// -2 if more than one of same type piece can get to the square.
+	// This also validates if the piece can make the move.
+	intPieceStartIndex = (*clsBoard).GetPieceIndex(strMove[0], intDestinationIndex, blnWhiteOrBlackTurn);
+
+	// Check if there is any piece in the way during moving (Knight is excluded by rule)
+	if (strMove[0] != 'N' && intPieceStartIndex != -1 && intPieceStartIndex != -2)
+	{
+		if ((*clsBoard).CheckMovePath(intPieceStartIndex, intDestinationIndex) == false)
+		{
+			intPieceStartIndex = -1;
+			*strErrorMessageToUser += "There are pieces in the way of your desired path. ";
+		}
+	}
+
+	// check if there is a piece already on target square
+	if ((*clsBoard).m_vecPositions[intDestinationIndex].ReturnNotationName() != '-' && intPieceStartIndex != -1 && intPieceStartIndex != -2)
+	{
+		if ((*clsBoard).m_vecPositions[intDestinationIndex].ReturnPieceColor() == blnWhiteOrBlackTurn)
+		{
+			*strErrorMessageToUser += "Your own piece is on that destination square. ";
+		}
+		else { *strErrorMessageToUser += "You must notate this move as a capture. "; }
+
+		intPieceStartIndex = -1;
+	}
+
+	// Give error messages if move is invalid, else, make the move!
+	if (intPieceStartIndex == -1) { *strErrorMessageToUser += "Attempted move is invalid. "; blnMoveSuccessful = false; }
+	else if (intPieceStartIndex == -2)
+	{
+		*strErrorMessageToUser += "More than one of that type of piece can make that move. Define the starting square in your notation. Ex. Rad4, R4d4, Ra4d4, Raxd4, etc. ";
+		blnMoveSuccessful = false;
+	}
+	else
+	{
+		// make the move. Simple swap for now. Will elaborate later.
+		(*clsBoard).SwapSquares(intPieceStartIndex, intDestinationIndex);
+
+		blnMoveSuccessful = true;
+	}
+
+	return blnMoveSuccessful;
+}
+
+bool MovePiece_Capture(char chrPieceMoving, char chrSquareLetter_Dest, char chrSquareNumber_Dest, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser)
+{
+	bool blnMoveSuccessful = false;
+	int intDestinationIndex = 0;
+	int intPieceStartIndex = 0;
+
+	// find the index for the square to move to
+	intDestinationIndex = (*clsBoard).GetPositionIndex(chrSquareLetter_Dest, chrSquareNumber_Dest);
+
+	// find the index for the square of the given piece. Will equal -1 if nonexistent.
+	// -2 if more than one of same type piece can get to the square.
+	// This also validates if the piece can make the move.
+	intPieceStartIndex = (*clsBoard).GetPieceIndex(chrPieceMoving, intDestinationIndex, blnWhiteOrBlackTurn);
+	
+	// check if there is nothing on target square
+	if ((*clsBoard).GetNotationName(intDestinationIndex) == '-')
+	{
+		*strErrorMessageToUser += "The requested capture has no piece at destination. ";
+		intPieceStartIndex = -1;
+	}
+
+	// check if a piece of the player's color is on the target square
+	if ((*clsBoard).GetPieceColor(intDestinationIndex) == blnWhiteOrBlackTurn &&
+		(*clsBoard).GetNotationName(intDestinationIndex) != '-')
+	{
+		*strErrorMessageToUser += "Your own piece is on that destination square. ";
+		intPieceStartIndex = -1;
+	}
+
+	// Give error messages if move is invalid, else, make the move!
+	if (intPieceStartIndex == -1) { *strErrorMessageToUser += "Attempted move is invalid. "; blnMoveSuccessful = false; }
+	else if (intPieceStartIndex == -2)
+	{
+		*strErrorMessageToUser += "More than one of that type of piece can make that move. Define the starting square in your notation. Ex. Rad4, R4d4, Ra4d4, Raxd4, etc. ";
+		blnMoveSuccessful = false;
+	}
+	else
+	{
+		// make the move. Simple swap for now. Will elaborate later.
+		(*clsBoard).CapturePiece(intPieceStartIndex, intDestinationIndex);
+
+		blnMoveSuccessful = true;
+	}
+
+	return blnMoveSuccessful;
 }

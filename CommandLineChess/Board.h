@@ -60,7 +60,6 @@ public:
 	void CapturePiece(int intPiece1, int intPiece2);
 	int GetPositionIndex(int intColumn, int intRow);
 	int GetPieceIndex(int intPieceAsciiValue, int intDesiredPosition, bool blnWhiteOrBlackTurn);
-	int GetPawnIndex(char chrStartColumn, int intDesiredPosition, bool blnWhiteOrBlackTurn);
 	char GetNotationName(int intSquareIndex);
 	bool GetPieceColor(int intSquareIndex);
 	bool CheckMovePath(int intPieceStartIndex, int intDestinationIndex);

@@ -218,56 +218,48 @@ int Board::GetPieceIndex(int intPieceAsciiValue, int intDesiredPosition, bool bl
 	int intIndex = 0;
 	int intPieceIndex = -1;
 	bool blnMoveIsPossible = false;
-
-	for (intIndex = 0; intIndex < 64; intIndex++)
-	{
-		if (m_vecPositions[intIndex].ReturnNotationName() == intPieceAsciiValue &&
-			m_vecPositions[intIndex].ReturnPieceColor() == blnWhiteOrBlackTurn)
-		{
-			// first, check to see if another piece of same type has already been verified
-			// during this For loop to make the move.
-			if(blnMoveIsPossible == true &&
-				m_vecPositions[intIndex].CheckIfValidMove(intIndex, intDesiredPosition, blnWhiteOrBlackTurn) == true)
-			{
-				intPieceIndex = -2; break; // -2 represents that 2 or more pieces can make the move
-			}
-
-			// check to see if it can make the move
-			blnMoveIsPossible = m_vecPositions[intIndex].CheckIfValidMove(intIndex, intDesiredPosition, blnWhiteOrBlackTurn);
-
-			if (blnMoveIsPossible == true) { intPieceIndex = intIndex; }
-		}
-	}
-
-	return intPieceIndex;
-}
-
-// --------------------------------------------------------------------------------
-// Name: GetPawnIndex()
-// Abstract: Retrieves the correct pawn location index based on given desired 
-// position, and the moving pawn's original column. Piece Returns -1 if piece does 
-// not exist.
-// --------------------------------------------------------------------------------
-int Board::GetPawnIndex(char chrStartColumn, int intDesiredPosition, bool blnWhiteOrBlackTurn)
-{
-	int intIndex = 0;
-	int intPieceIndex = -1;
-	bool blnMoveIsPossible = false;
 	int intColumnIdentifier = 0;
 
-	// find the 'column identifier' to be used to find the indicies of the given start column
-	intColumnIdentifier = chrStartColumn - 97;
-
-	for (intIndex = 0; intIndex < 64; intIndex++)
+	// if a pawn
+	if (intPieceAsciiValue >= 97 && intPieceAsciiValue <= 104)
 	{
-		if (m_vecPositions[intIndex].ReturnNotationName() == 'P' &&
-			m_vecPositions[intIndex].ReturnPieceColor() == blnWhiteOrBlackTurn &&
-			(intIndex - intColumnIdentifier) % 8 == 0)
-		{
-			// check to see if it can make the move
-			blnMoveIsPossible = m_vecPositions[intIndex].CheckIfValidMove(intIndex, intDesiredPosition, blnWhiteOrBlackTurn);
+		// find the 'column identifier' to be used to find the indicies of the given start column
+		intColumnIdentifier = intPieceAsciiValue - 97;
 
-			if (blnMoveIsPossible == true) { intPieceIndex = intIndex; }
+		for (intIndex = 0; intIndex < 64; intIndex++)
+		{
+			if (m_vecPositions[intIndex].ReturnNotationName() == 'P' &&
+				m_vecPositions[intIndex].ReturnPieceColor() == blnWhiteOrBlackTurn &&
+				(intIndex - intColumnIdentifier) % 8 == 0)
+			{
+				// check to see if it can make the move
+				blnMoveIsPossible = m_vecPositions[intIndex].CheckIfValidMove(intIndex, intDesiredPosition, blnWhiteOrBlackTurn);
+
+				if (blnMoveIsPossible == true) { intPieceIndex = intIndex; }
+			}
+		}
+	}
+	// if not a pawn
+	else
+	{
+		for (intIndex = 0; intIndex < 64; intIndex++)
+		{
+			if (m_vecPositions[intIndex].ReturnNotationName() == intPieceAsciiValue &&
+				m_vecPositions[intIndex].ReturnPieceColor() == blnWhiteOrBlackTurn)
+			{
+				// first, check to see if another piece of same type has already been verified
+				// during this For loop to make the move.
+				if (blnMoveIsPossible == true &&
+					m_vecPositions[intIndex].CheckIfValidMove(intIndex, intDesiredPosition, blnWhiteOrBlackTurn) == true)
+				{
+					intPieceIndex = -2; break; // -2 represents that 2 or more pieces can make the move
+				}
+
+				// check to see if it can make the move
+				blnMoveIsPossible = m_vecPositions[intIndex].CheckIfValidMove(intIndex, intDesiredPosition, blnWhiteOrBlackTurn);
+
+				if (blnMoveIsPossible == true) { intPieceIndex = intIndex; }
+			}
 		}
 	}
 
