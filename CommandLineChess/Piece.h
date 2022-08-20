@@ -37,6 +37,7 @@ protected:
 	string m_strFullName = ""; // Property holding the name of the piece (ex. King, Bishop, or Knight)
 	int m_intPosition = 0; // Represents the 0-63 index upon which the piece is sitting. Updated at the same time the Board Positions array is updated.
 	bool m_blnWhiteOrBlack; // True is White piece, False is Black piece.
+	int m_intMoveCount = 0; // Number of times the piece has moved. Used primarily for validating castling and en-passant moves.
 
 private:
 
@@ -51,6 +52,8 @@ public:
 
 	char ReturnNotationName();
 	bool ReturnPieceColor();
+	int ReturnMoveCount();
+	void IncrementMoveCount();
 	void UpdatePosition(int intTargetPosition);
 	bool Move(int intTargetPosition);
 	bool CheckIfValidMove(int intCurrentPosition, int intDesiredPosition, bool blnWhiteOrBlackMove);

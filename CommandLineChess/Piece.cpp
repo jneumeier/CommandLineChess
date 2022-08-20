@@ -20,6 +20,7 @@ Piece::Piece()
 	m_strFullName = "blank";
 	m_intPosition = 0;
 	m_blnWhiteOrBlack = false;
+	m_intMoveCount = 0;
 }
 
 
@@ -33,6 +34,7 @@ Piece::Piece(char chrNotationName, string strFullName, int intPosition, bool bln
 	m_strFullName = strFullName;
 	m_intPosition = intPosition;
 	m_blnWhiteOrBlack = blnWhiteOrBlack;
+	m_intMoveCount = 0;
 }
 
 
@@ -53,6 +55,27 @@ bool Piece::ReturnPieceColor()
 {
 	return m_blnWhiteOrBlack;
 }
+
+
+// --------------------------------------------------------------------------------
+// Name: ReturnMoveCount()
+// Abstract: Returns the number of times the piece has moved
+// --------------------------------------------------------------------------------
+int Piece::ReturnMoveCount()
+{
+	return m_intMoveCount;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: IncrementMoveCount()
+// Abstract: Increments by one, the number of times the piece has moved
+// --------------------------------------------------------------------------------
+void Piece::IncrementMoveCount()
+{
+	m_intMoveCount += 1;
+}
+
 
 // --------------------------------------------------------------------------------
 // Name: Move()
@@ -84,7 +107,8 @@ void Piece::UpdatePosition(int intTargetPosition)
 
 // --------------------------------------------------------------------------------
 // Name: CheckIfValidMove()
-// Abstract: Checks if the proposed move is valid, and returns true if so.
+// Abstract: Checks if the proposed move is valid, only in terms of direction,
+// and returns true if so.
 // --------------------------------------------------------------------------------
 bool Piece::CheckIfValidMove(int intCurrentPosition, int intDesiredPosition, bool blnWhiteOrBlackMove)
 {

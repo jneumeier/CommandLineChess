@@ -35,6 +35,8 @@ class Board
 public:			// Never make public properties.  
 				// Make protected or private with public get/set methods
 	vector <Piece> m_vecPositions;
+	bool m_blnWhiteInCheck = false;
+	bool m_blnBlackInCheck = false;
 
 protected:
 
@@ -63,6 +65,8 @@ public:
 	char GetNotationName(int intSquareIndex);
 	bool GetPieceColor(int intSquareIndex);
 	bool CheckMovePath(int intPieceStartIndex, int intDestinationIndex);
+	bool IsKingInCheck(bool blnWhiteOrBlackTurn, int intPosition);
+	int GetKingIndex(bool blnWhiteOrBlackTurn);
 
 protected:
 

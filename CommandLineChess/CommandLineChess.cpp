@@ -34,6 +34,7 @@ bool CheckForSquareAscii(int intColumn, int intRow);
 bool MovePiece_Pawn(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser);
 bool MovePiece_3Char(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser);
 bool MovePiece_Capture(char chrPieceMoving, char chrSquareLetter_Dest, char chrSquareNumber_Dest, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser);
+bool MovePiece_Castle(bool blnKingside, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser);
 
 
 // --------------------------------------------------------------------------------
@@ -48,8 +49,10 @@ int main()
 	string strMove = "";
 	string strErrorMessageToUser = "";
 	string strMessageToUser = "";
+	int intKingIndex;
 
 	Board clsBoard; // initialize the chess board. This also initializes all Pieces.
+	Board clsBoardCopy;
 
 	// start game loop. Exits loop when break is triggered
 	while(1)
@@ -68,6 +71,20 @@ int main()
 		strMove = GetMove(); // get the move from the user
 		if (strMove == "exit") { cout << "Exiting...Bye!" << endl; break; } // exit the game
 		blnMoveSuccessful = MakeMove(strMove, blnWhiteOrBlackTurn, &clsBoard, &strErrorMessageToUser); // try to make the entered move
+
+		// check for current player's king still being in check
+		clsBoardCopy = clsBoard;
+		if (blnMoveSuccessful)
+		{
+			intKingIndex = clsBoard.GetKingIndex(blnWhiteOrBlackTurn);
+			if(clsBoard.IsKingInCheck(blnWhiteOrBlackTurn, intKingIndex))
+			{
+				blnMoveSuccessful = false;
+				// copy pre-kingcheck-check board back to current board
+				clsBoard = clsBoardCopy;
+				strErrorMessageToUser = "Invalid move. Your king is in check.";
+			}
+		}
 
 		// Change turns if the move was successful, and, change message back to "" so the board
 		// can be reprinted.
@@ -196,6 +213,17 @@ bool MakeMove(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string 
 	// If given move is in format--> example: B1e5, then, make the move.
 	// If given move is in format--> example: Bfxe5, then, make the move.
 	// If given move is in format--> example: Bf4xe5, then, make the move.
+
+	// If request to castle kingside
+	else if (strMove == "0-0" || strMove == "O-O")
+	{
+		blnMoveSuccessful = MovePiece_Castle(true, blnWhiteOrBlackTurn, clsBoard, strErrorMessageToUser);
+	}
+	// If request to castle queenside
+	else if (strMove == "0-0-0" || strMove == "O-O-O")
+	{
+		blnMoveSuccessful = MovePiece_Castle(false, blnWhiteOrBlackTurn, clsBoard, strErrorMessageToUser);
+	}
 
 	return blnMoveSuccessful;
 }
@@ -379,7 +407,7 @@ bool MovePiece_Capture(char chrPieceMoving, char chrSquareLetter_Dest, char chrS
 	// -2 if more than one of same type piece can get to the square.
 	// This also validates if the piece can make the move.
 	intPieceStartIndex = (*clsBoard).GetPieceIndex(chrPieceMoving, intDestinationIndex, blnWhiteOrBlackTurn);
-	
+
 	// check if there is nothing on target square
 	if ((*clsBoard).GetNotationName(intDestinationIndex) == '-')
 	{
@@ -409,6 +437,66 @@ bool MovePiece_Capture(char chrPieceMoving, char chrSquareLetter_Dest, char chrS
 
 		blnMoveSuccessful = true;
 	}
+
+	return blnMoveSuccessful;
+}
+
+
+bool MovePiece_Castle(bool blnKingside, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser)
+{
+	bool blnMoveSuccessful = false;
+
+	// get the spots that the pieces must be in for castling to be a legal move
+	int intKingIndex = 0;
+	int intRookIndex = 0;
+	int intIncrement = 0;
+
+	// if white's move
+	if (blnWhiteOrBlackTurn)
+	{
+		intKingIndex = 60;
+		if (blnKingside) { intRookIndex = 63; }
+		else { intRookIndex = 56; }
+	}
+	// if black's move
+	else
+	{
+		intKingIndex = 4;
+		if (blnKingside) { intRookIndex = 7; }
+		else { intRookIndex = 0; }
+	}
+
+	// see if the king and rook are on their original squares
+	if ((*clsBoard).GetNotationName(intKingIndex) == 'K' && (*clsBoard).GetNotationName(intRookIndex) == 'R')
+	{
+		// see if either piece has moved yet
+		if ((*clsBoard).m_vecPositions[intKingIndex].ReturnMoveCount() == 0 &&
+			(*clsBoard).m_vecPositions[intRookIndex].ReturnMoveCount() == 0)
+		{
+			// set king-pathway direction for checking
+			if (blnKingside) { intIncrement = 1; } else { intIncrement = -1; } // first, see which direction to check in
+
+			// see if there are any pieces in the immediate pathway between king and rook
+			if ((*clsBoard).m_vecPositions[intKingIndex + intIncrement].ReturnNotationName() == '-' && (*clsBoard).m_vecPositions[intKingIndex + (intIncrement * 2)].ReturnNotationName() == '-')
+			{
+				// see if king is in check in current, passing, and final square before moving
+				if ((*clsBoard).IsKingInCheck(blnWhiteOrBlackTurn, intKingIndex) && (*clsBoard).IsKingInCheck(blnWhiteOrBlackTurn, intKingIndex + intIncrement) &&
+					(*clsBoard).IsKingInCheck(blnWhiteOrBlackTurn, intKingIndex + (intIncrement * 2)))
+				{
+					
+				}
+			}
+
+			
+			//// see if king is in check after moving
+			//// see if king passes through check during move
+		}
+	}
+
+	// make the move. Simple swap for now. Will elaborate later.
+	//(*clsBoard).SwapSquares(intPieceStartIndex, intDestinationIndex);
+
+	blnMoveSuccessful = true;
 
 	return blnMoveSuccessful;
 }

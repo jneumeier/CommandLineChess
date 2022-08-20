@@ -140,11 +140,13 @@ void Board::DisplayBoard(bool blnWhiteOrBlackTurn)
 // Name: SwapSquares()
 // Abstract: Swaps the contents of two squares (two indecies of the Pieces vector)
 //			 This is used when a piece moves to an empty square. Therefore, we
-//			 swap the piece with the "empty square piece".
+//			 swap the piece with the "empty square piece". This is also used for
+//			 castling.
 // --------------------------------------------------------------------------------
 void Board::SwapSquares(int intPiece1, int intPiece2)
 {
 	swap(m_vecPositions[intPiece1], m_vecPositions[intPiece2]);
+	m_vecPositions[intPiece2].IncrementMoveCount();
 }
 
 // --------------------------------------------------------------------------------
@@ -155,14 +157,10 @@ void Board::SwapSquares(int intPiece1, int intPiece2)
 // --------------------------------------------------------------------------------
 void Board::CapturePiece(int intPiece1, int intPiece2)
 {
-	// create blank square blueprint
-	Piece EmptySquare('-', "empty square", 16, true);
-
-	// swap the start and the destination squares
-	swap(m_vecPositions[intPiece1], m_vecPositions[intPiece2]);
-
-	// wipe the starting square to a hypen, because the captured piece will be here
-	m_vecPositions[intPiece1] = EmptySquare;
+	Piece EmptySquare('-', "empty square", 16, true); // create blank square blueprint
+	swap(m_vecPositions[intPiece1], m_vecPositions[intPiece2]); // swap the start and the destination squares
+	m_vecPositions[intPiece1] = EmptySquare; // wipe the starting square to a hypen, because the captured piece will be here
+	m_vecPositions[intPiece2].IncrementMoveCount();
 }
 
 // --------------------------------------------------------------------------------
@@ -212,6 +210,8 @@ int Board::GetPositionIndex(int intColumn, int intRow)
 // Abstract: Retrieves the given piece's location index in the board vector. Piece
 // is given only as an ascii value (or char). Returns -1 if piece does not exist.
 // -2 if more than one piece of same type can make the move.
+// This is partially improperly named--It does check for where the piece is, but
+// also must be used to find a destination spot.
 // --------------------------------------------------------------------------------
 int Board::GetPieceIndex(int intPieceAsciiValue, int intDesiredPosition, bool blnWhiteOrBlackTurn)
 {
@@ -300,7 +300,7 @@ bool Board::GetPieceColor(int intSquareIndex)
 // --------------------------------------------------------------------------------
 bool Board::CheckMovePath(int intPieceStartIndex, int intDestinationIndex)
 {
-	bool blnMovePathIsClear = true;
+	bool blnMovePathIsClear = false;
 
 	int intStartToDestinationDifference = 0;
 	int intMoveIncrement = 0; // This number will basically say if the move is diagonal or orthogonal.
@@ -312,13 +312,13 @@ bool Board::CheckMovePath(int intPieceStartIndex, int intDestinationIndex)
 	if (intStartToDestinationDifference >= -7 && intStartToDestinationDifference <= 7)
 	{
 		intMoveIncrement = 1;
+		blnMovePathIsClear = true;
 	}
 
 	// checks for up-and-down and diagonal movement (finds the move increment for the board array)
-	if (intStartToDestinationDifference % 7 == 0) { intMoveIncrement = 7; } // northeast/southwest
-	else if (intStartToDestinationDifference % 9 == 0) { intMoveIncrement = 9; } // northwest/southeast
-	else if (intStartToDestinationDifference % 8 == 0) { intMoveIncrement = 8; } // up/down
-	else { blnMovePathIsClear = false; }
+	if (intStartToDestinationDifference % 7 == 0) { intMoveIncrement = 7; blnMovePathIsClear = true; } // northeast/southwest
+	else if (intStartToDestinationDifference % 9 == 0) { intMoveIncrement = 9; blnMovePathIsClear = true; } // northwest/southeast
+	else if (intStartToDestinationDifference % 8 == 0) { intMoveIncrement = 8; blnMovePathIsClear = true; } // up/down
 
 	// continue if movement type check has passed
 	if (blnMovePathIsClear == true)
@@ -339,4 +339,79 @@ bool Board::CheckMovePath(int intPieceStartIndex, int intDestinationIndex)
 	}
 
 	return blnMovePathIsClear;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: IsKingInCheck()
+// Abstract: Takes hypothetical position of a king, and uses the current board
+// position to see if a king on the given square would be in check 
+// --------------------------------------------------------------------------------
+bool Board::IsKingInCheck(bool blnWhiteOrBlackTurn, int intPosition)
+{
+	int intIndex;
+	char chrPiece;
+
+	bool IsInCheck = false;
+
+	// check horizontal pathway, left, until a piece is hit
+	intIndex = intPosition;
+	while (intIndex % 8 != 0)
+	{
+		// If first time thru the while loop, index will always be the same as intPosition
+		// Here, we get the first position to check, and ensure that the while condition 
+		// prevents us from starting our check if we are on the edge of the board.
+		if (intIndex == intPosition) { intIndex -= 1; }
+
+		chrPiece = m_vecPositions[intIndex].ReturnNotationName();
+		if (chrPiece == '-') { intIndex -= 1; }
+		else
+		{
+			// Because we've found a piece that is directly in a line with the king,
+			// we see if it is threatening the king based on how the piece moves.
+
+			// check if it is the opponent's piece
+			if (m_vecPositions[intIndex].ReturnPieceColor() == !blnWhiteOrBlackTurn)
+			{
+				if (chrPiece == 'Q' || chrPiece == 'R')
+				{
+					IsInCheck = true;
+					break;
+				}
+			}
+		}
+
+		intIndex -= 1;
+	}
+
+	intIndex = intPosition + 1; // reset index for checking squares
+
+	return IsInCheck;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: GetPieceIndex()
+// Abstract: Finds the index of the current player's king. Returns -1 if no king
+// is found, but this should not happen.
+// --------------------------------------------------------------------------------
+int Board::GetKingIndex(bool blnWhiteOrBlackTurn)
+{
+	int intKingIndex = -1;
+	int intIndex = 0;
+	char chrNotationName;
+	bool blnWhiteOrBlack;
+
+	for (intIndex = 0; intIndex <= 63; intIndex++)
+	{
+		chrNotationName = m_vecPositions[intIndex].ReturnNotationName();
+		blnWhiteOrBlack = m_vecPositions[intIndex].ReturnPieceColor();
+		if (chrNotationName == 'K' && blnWhiteOrBlack == blnWhiteOrBlackTurn)
+		{
+			intKingIndex = intIndex;
+			break;
+		}
+	}
+
+	return intKingIndex;
 }
