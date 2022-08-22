@@ -358,14 +358,9 @@ bool Board::IsKingInCheck(bool blnWhiteOrBlackTurn, int intPosition)
 	intIndex = intPosition;
 	while (intIndex % 8 != 0)
 	{
-		// If first time thru the while loop, index will always be the same as intPosition
-		// Here, we get the first position to check, and ensure that the while condition 
-		// prevents us from starting our check if we are on the edge of the board.
-		if (intIndex == intPosition) { intIndex -= 1; }
-
+		intIndex -= 1;
 		chrPiece = m_vecPositions[intIndex].ReturnNotationName();
-		if (chrPiece == '-') { intIndex -= 1; }
-		else
+		if (chrPiece != '-')
 		{
 			// Because we've found a piece that is directly in a line with the king,
 			// we see if it is threatening the king based on how the piece moves.
@@ -379,9 +374,8 @@ bool Board::IsKingInCheck(bool blnWhiteOrBlackTurn, int intPosition)
 					break;
 				}
 			}
+			else { break; }
 		}
-
-		intIndex -= 1;
 	}
 
 	intIndex = intPosition + 1; // reset index for checking squares

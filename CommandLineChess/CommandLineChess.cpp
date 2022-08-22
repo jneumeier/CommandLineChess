@@ -70,10 +70,10 @@ int main()
 
 		strMove = GetMove(); // get the move from the user
 		if (strMove == "exit") { cout << "Exiting...Bye!" << endl; break; } // exit the game
+		clsBoardCopy = clsBoard; // copy board so reversion is possible after analyzing new board for king-in-check
 		blnMoveSuccessful = MakeMove(strMove, blnWhiteOrBlackTurn, &clsBoard, &strErrorMessageToUser); // try to make the entered move
 
 		// check for current player's king still being in check
-		clsBoardCopy = clsBoard;
 		if (blnMoveSuccessful)
 		{
 			intKingIndex = clsBoard.GetKingIndex(blnWhiteOrBlackTurn);
