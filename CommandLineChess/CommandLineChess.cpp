@@ -26,9 +26,11 @@ using namespace std;
 // --------------------------------------------------------------------------------
 // Initializers
 // --------------------------------------------------------------------------------
+void TurnDisplay(Board* clsBoard, bool blnWhiteOrBlackTurn, string* strErrorMessageToUser, string* strMessageToUser);
 string GetMove();
 bool ValidateEntry(string strMove);
 bool MakeMove(string strMove, bool blnWhiteOrBlackTurn, Board *clsBoard, string *strMessageToUser);
+bool HandleCheckStatus(Board* clsBoard, Board* clsBoardCopy, bool blnWhiteOrBlackTurn, string* strErrorMessageToUser, string* strMessageToUser, bool blnMoveSuccessful, string strMove);
 bool CheckForPieceAscii(int intPieceAscii);
 bool CheckForSquareAscii(int intColumn, int intRow);
 bool MovePiece_Pawn(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser);
@@ -49,7 +51,6 @@ int main()
 	string strMove = "";
 	string strErrorMessageToUser = "";
 	string strMessageToUser = "";
-	int intKingIndex;
 
 	Board clsBoard; // initialize the chess board. This also initializes all Pieces.
 	Board clsBoardCopy;
@@ -57,43 +58,47 @@ int main()
 	// start game loop. Exits loop when break is triggered
 	while(1)
 	{
-		// print the board, if error message was not given last move attempt
-		if(strErrorMessageToUser == "") { clsBoard.DisplayBoard(blnWhiteOrBlackTurn); }
-
-		// print error message to user, if a message was given as a result of the last move attempt
-		else { cout << strErrorMessageToUser << endl << endl; }
-		strErrorMessageToUser = ""; // reset to prepare for another possible error message
-
-		// print informational message from last move, then reset it to prepare for another possible message
-		if (strMessageToUser != "") { cout << strMessageToUser << endl; }
-		strMessageToUser = "";
-
+		clsBoardCopy = clsBoard; // copy board so reversion is possible within current move (used for HandleCheckStatus)
+		TurnDisplay(&clsBoard, blnWhiteOrBlackTurn, &strErrorMessageToUser, &strMessageToUser); // run the current turn's display
 		strMove = GetMove(); // get the move from the user
 		if (strMove == "exit") { cout << "Exiting...Bye!" << endl; break; } // exit the game
-		clsBoardCopy = clsBoard; // copy board so reversion is possible after analyzing new board for king-in-check
 		blnMoveSuccessful = MakeMove(strMove, blnWhiteOrBlackTurn, &clsBoard, &strErrorMessageToUser); // try to make the entered move
+		blnMoveSuccessful = HandleCheckStatus(&clsBoard, &clsBoardCopy, blnWhiteOrBlackTurn, &strErrorMessageToUser, &strMessageToUser, blnMoveSuccessful, strMove);
 
-		// check for current player's king still being in check
-		if (blnMoveSuccessful)
-		{
-			intKingIndex = clsBoard.GetKingIndex(blnWhiteOrBlackTurn);
-			if(clsBoard.IsKingInCheck(blnWhiteOrBlackTurn, intKingIndex))
-			{
-				blnMoveSuccessful = false;
-				// copy pre-kingcheck-check board back to current board
-				clsBoard = clsBoardCopy;
-				strErrorMessageToUser = "Invalid move. Your king is in check.";
-			}
-		}
-
-		// Change turns if the move was successful, and, change message back to "" so the board
-		// can be reprinted.
+		// Change turns if the move was successful, and, change message back to ""
 		if (blnMoveSuccessful == true)
 		{ 
 			blnWhiteOrBlackTurn = !blnWhiteOrBlackTurn;
 			strErrorMessageToUser = "";
 		}
 	}
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: TurnDisplay
+// Abstract: Shows all display needed for the current player's turn--the board
+//			 and all messages that need to be shown
+// --------------------------------------------------------------------------------
+void TurnDisplay(Board* clsBoard, bool blnWhiteOrBlackTurn, string* strErrorMessageToUser, string* strMessageToUser)
+{
+	(*clsBoard).DisplayBoard(blnWhiteOrBlackTurn); // print the board
+
+	if (*strErrorMessageToUser != "")
+	{ 
+		cout << *strErrorMessageToUser << endl; // print error message to user
+		*strErrorMessageToUser = ""; // reset to prepare for another possible error message
+	} 
+	
+	if (*strMessageToUser != "")
+	{ 
+		cout << *strMessageToUser << endl; // print informational message from last move
+		*strMessageToUser = ""; // then reset it to prepare for another possible message
+	} 
+	
+	// print king-in-check status
+	int intKingIndex = (*clsBoard).GetKingIndex(blnWhiteOrBlackTurn);
+	if ((*clsBoard).IsKingInCheck(blnWhiteOrBlackTurn, intKingIndex)) { cout << "You are in check." << endl << endl; }
 }
 
 
@@ -230,6 +235,54 @@ bool MakeMove(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string 
 
 
 // --------------------------------------------------------------------------------
+// Name: HandleCheckStatus
+// Abstract: Depending on board state this updates players' check statuses, and
+//			 records the proper messages to be shown to the user.
+// --------------------------------------------------------------------------------
+bool HandleCheckStatus(Board* clsBoard, Board* clsBoardCopy, bool blnWhiteOrBlackTurn, string* strErrorMessageToUser, string* strMessageToUser, bool blnMoveSuccessful, string strMove)
+{
+	int intKingIndex;
+	bool* pblnCurrentPlayerCheckStatus;
+	bool* pblnOtherPlayerCheckStatus;
+
+	// get address for current player's check status, so its value can be easily checked against
+	if (blnWhiteOrBlackTurn)
+	{
+		pblnCurrentPlayerCheckStatus = &(*clsBoard).m_blnWhiteInCheck;
+		pblnOtherPlayerCheckStatus = &(*clsBoard).m_blnBlackInCheck;
+	}
+	else
+	{
+		pblnCurrentPlayerCheckStatus = &(*clsBoard).m_blnBlackInCheck;
+		pblnOtherPlayerCheckStatus = &(*clsBoard).m_blnWhiteInCheck;
+	}
+
+	if (blnMoveSuccessful)
+	{
+		// update other player's check status
+		intKingIndex = (*clsBoard).GetKingIndex(!blnWhiteOrBlackTurn); // set king index to opposing player's
+		if ((*clsBoard).IsKingInCheck(!blnWhiteOrBlackTurn, intKingIndex)) { *pblnOtherPlayerCheckStatus = true; }
+		else { *pblnOtherPlayerCheckStatus = false; }
+
+		// check for current player's king still being in check, else update current player's check status
+		intKingIndex = (*clsBoard).GetKingIndex(blnWhiteOrBlackTurn); // set king index to current player's
+		if ((*clsBoard).IsKingInCheck(blnWhiteOrBlackTurn, intKingIndex))
+		{
+			blnMoveSuccessful = false;
+			*pblnCurrentPlayerCheckStatus = true;
+			*clsBoard = *clsBoardCopy; // Now that we know check has resulted from current turn's move, board goes back to its state before current turn's move was made.
+			if (strMove[0] == 'K' && *pblnCurrentPlayerCheckStatus == true) { *strErrorMessageToUser = "Invalid move. Your king cannot escape check there."; }
+			else if (strMove[0] == 'K' && *pblnCurrentPlayerCheckStatus == false) { *strErrorMessageToUser = "Invalid move. Your king would enter check there."; }
+			else { *strErrorMessageToUser = "Invalid move."; }
+		}
+		else { *pblnCurrentPlayerCheckStatus = false; }
+	}
+
+	return blnMoveSuccessful;
+}
+
+
+// --------------------------------------------------------------------------------
 // Name: CheckForPieceAscii
 // Abstract: Returns true if given int is ascii value for B, K, N, Q or R
 // --------------------------------------------------------------------------------
@@ -340,6 +393,10 @@ bool MovePiece_Pawn(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, s
 	return blnMoveSuccessful;
 }
 
+// --------------------------------------------------------------------------------
+// Name: MovePiece_3Char
+// Abstract: Moves a piece on the board
+// --------------------------------------------------------------------------------
 bool MovePiece_3Char(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser)
 {
 	bool blnMoveSuccessful = false;
@@ -394,6 +451,10 @@ bool MovePiece_3Char(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, 
 	return blnMoveSuccessful;
 }
 
+// --------------------------------------------------------------------------------
+// Name: MovePiece_Capture
+// Abstract: Caputures a piece on the board
+// --------------------------------------------------------------------------------
 bool MovePiece_Capture(char chrPieceMoving, char chrSquareLetter_Dest, char chrSquareNumber_Dest, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser)
 {
 	bool blnMoveSuccessful = false;
@@ -441,7 +502,10 @@ bool MovePiece_Capture(char chrPieceMoving, char chrSquareLetter_Dest, char chrS
 	return blnMoveSuccessful;
 }
 
-
+// --------------------------------------------------------------------------------
+// Name: MovePiece_Castle
+// Abstract: Performs castling
+// --------------------------------------------------------------------------------
 bool MovePiece_Castle(bool blnKingside, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser)
 {
 	bool blnMoveSuccessful = false;

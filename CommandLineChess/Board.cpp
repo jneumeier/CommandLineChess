@@ -133,7 +133,7 @@ void Board::DisplayBoard(bool blnWhiteOrBlackTurn)
 	// display who's turn it is
 	if (blnWhiteOrBlackTurn == true) { strCurrentColorTurn = "White"; }
 	else { strCurrentColorTurn = "Black"; }
-	cout << endl << strCurrentColorTurn << "'s turn to move." << endl << endl;
+	cout << endl << strCurrentColorTurn << "'s turn to move." << endl;
 }
 
 // --------------------------------------------------------------------------------
@@ -378,7 +378,79 @@ bool Board::IsKingInCheck(bool blnWhiteOrBlackTurn, int intPosition)
 		}
 	}
 
-	intIndex = intPosition + 1; // reset index for checking squares
+	// check horizontal pathway, right, until a piece is hit
+	intIndex = intPosition;
+	while ((intIndex - 7) % 8 != 0)
+	{
+		intIndex += 1;
+		chrPiece = m_vecPositions[intIndex].ReturnNotationName();
+		if (chrPiece != '-')
+		{
+			// Because we've found a piece that is directly in a line with the king,
+			// we see if it is threatening the king based on how the piece moves.
+
+			// check if it is the opponent's piece
+			if (m_vecPositions[intIndex].ReturnPieceColor() == !blnWhiteOrBlackTurn)
+			{
+				if (chrPiece == 'Q' || chrPiece == 'R')
+				{
+					IsInCheck = true;
+					break;
+				}
+			}
+			else { break; }
+		}
+	}
+
+	// check vertical pathway, up, until a piece is hit
+	intIndex = intPosition;
+	while (intIndex >= 7)
+	{
+		intIndex -= 8;
+		chrPiece = m_vecPositions[intIndex].ReturnNotationName();
+		if (chrPiece != '-')
+		{
+			// Because we've found a piece that is directly in a line with the king,
+			// we see if it is threatening the king based on how the piece moves.
+
+			// check if it is the opponent's piece
+			if (m_vecPositions[intIndex].ReturnPieceColor() == !blnWhiteOrBlackTurn)
+			{
+				if (chrPiece == 'Q' || chrPiece == 'R')
+				{
+					IsInCheck = true;
+					break;
+				}
+			}
+			else { break; }
+		}
+	}
+
+	// check vertical pathway, down, until a piece is hit
+	intIndex = intPosition;
+	while (intIndex <= 56)
+	{
+		intIndex += 8;
+		chrPiece = m_vecPositions[intIndex].ReturnNotationName();
+		if (chrPiece != '-')
+		{
+			// Because we've found a piece that is directly in a line with the king,
+			// we see if it is threatening the king based on how the piece moves.
+
+			// check if it is the opponent's piece
+			if (m_vecPositions[intIndex].ReturnPieceColor() == !blnWhiteOrBlackTurn)
+			{
+				if (chrPiece == 'Q' || chrPiece == 'R')
+				{
+					IsInCheck = true;
+					break;
+				}
+			}
+			else { break; }
+		}
+	}
+
+
 
 	return IsInCheck;
 }
