@@ -28,7 +28,7 @@ The game currently has core mechanics in place, and pieces can be moved and capt
 *********************
 To Implement:
 *********************
-- ensure capture mechanic is implemented in all other move calls, rather than just the "Rxa5" 4-char call
+- To ensure capturing and moving of all algebraic notation calls are utilized. Only calls in format examples "e4", "Rd4", "Qxb5", and "exd5" are currently possible.
 - castling
 - game concept of king being in check
 - game concept of checkmate
@@ -36,4 +36,7 @@ To Implement:
 - display captured pieces
 - Title screen with main menu before starting the game
 - Option to display the main menu at any time
+- Undo
+- Ascii Art-style chessboard (will be much larger on the screen)
+- Ability to load/save .pgn files
 - more stuff later!!!
