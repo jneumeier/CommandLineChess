@@ -29,8 +29,7 @@ The game currently has core mechanics in place, and pieces can be moved and capt
 To Implement:
 *********************
 - To ensure capturing and moving of all algebraic notation calls are utilized. Only calls in format examples "e4", "Rd4", "Qxb5", and "exd5" are currently possible.
-- castling
-- game concept of king being in check
+
 - game concept of checkmate
 - vectors to hold captured pieces
 - display captured pieces

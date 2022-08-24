@@ -7,6 +7,7 @@
 // Includes
 // --------------------------------------------------------------------------------
 #include <vector>
+#include <string>
 #include "Board.h"
 
 
@@ -84,12 +85,259 @@ void Board::SetStartingPosition()
 }
 
 // --------------------------------------------------------------------------------
-// Name: DisplayBoard()
+// Name: GetAscii_Pawn_Clear
+// Abstract: Returns pointer to array of strings representing each line of the piece.
+// --------------------------------------------------------------------------------
+string* Board::GetAscii_Pawn_Clear()
+{
+	string strLine1 = "       ";
+	string strLine2 = "   _   ";
+	string strLine3 = "  / \\  ";
+	string strLine4 = "  \\ /  ";
+	string strLine5 = "  | |  ";
+	string strLine6 = " /___\\ ";
+
+	static string astrPawn_Clear[6] = { strLine1, strLine2, strLine3, strLine4, strLine5, strLine6 };
+
+	return astrPawn_Clear;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: GetAscii_Pawn_Filled
+// Abstract: Returns pointer to array of strings representing each line of the piece.
+// --------------------------------------------------------------------------------
+string* Board::GetAscii_Pawn_Filled()
+{
+	string strLine1 = "       ";
+	string strLine2 = "  ##   ";
+	string strLine3 = " ####  ";
+	string strLine4 = "  ##   ";
+	string strLine5 = "  ##   ";
+	string strLine6 = " ####  ";
+
+	static string astrPawn_Filled[6] = { strLine1, strLine2, strLine3, strLine4, strLine5, strLine6 };
+
+	return astrPawn_Filled;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: GetAscii_Rook_Clear
+// Abstract: Returns pointer to array of strings representing each line of the piece.
+// --------------------------------------------------------------------------------
+string* Board::GetAscii_Rook_Clear()
+{
+	string strLine1 = " _ _ _ ";
+	string strLine2 = "|_   _|";
+	string strLine3 = " |   | ";
+	string strLine4 = " |   | ";
+	string strLine5 = " |   | ";
+	string strLine6 = "/_____\\";
+
+	static string astrRook_Clear[6] = { strLine1, strLine2, strLine3, strLine4, strLine5, strLine6 };
+
+	return astrRook_Clear;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: GetAscii_Rook_Filled
+// Abstract: Returns pointer to array of strings representing each line of the piece.
+// --------------------------------------------------------------------------------
+string* Board::GetAscii_Rook_Filled()
+{
+	string strLine1 = "# ## # ";
+	string strLine2 = "###### ";
+	string strLine3 = " ####  ";
+	string strLine4 = " ####  ";
+	string strLine5 = "###### ";
+	string strLine6 = "###### ";
+
+	static string astrRook_Filled[6] = { strLine1, strLine2, strLine3, strLine4, strLine5, strLine6 };
+
+	return astrRook_Filled;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: GetAscii_Knight_Clear
+// Abstract: Returns pointer to array of strings representing each line of the piece.
+// --------------------------------------------------------------------------------
+string* Board::GetAscii_Knight_Clear()
+{
+	string strLine1 = "  __   ";
+	string strLine2 = " /  \\  ";
+	string strLine3 = "/   _| ";
+	string strLine4 = "\\   \\  ";
+	string strLine5 = " |  |  ";
+	string strLine6 = "/____\\ ";
+
+	static string astrKnight_Clear[6] = { strLine1, strLine2, strLine3, strLine4, strLine5, strLine6 };
+
+	return astrKnight_Clear;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: GetAscii_Knight_Filled
+// Abstract: Returns pointer to array of strings representing each line of the piece.
+// --------------------------------------------------------------------------------
+string* Board::GetAscii_Knight_Filled()
+{
+	string strLine1 = "  ##   ";
+	string strLine2 = " ####  ";
+	string strLine3 = "###### ";
+	string strLine4 = "###    ";
+	string strLine5 = " ####  ";
+	string strLine6 = "###### ";
+
+	static string astrKnight_Filled[6] = { strLine1, strLine2, strLine3, strLine4, strLine5, strLine6 };
+
+	return astrKnight_Filled;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: GetAscii_Bishop_Clear
+// Abstract: Returns pointer to array of strings representing each line of the piece.
+// --------------------------------------------------------------------------------
+string* Board::GetAscii_Bishop_Clear()
+{
+	string strLine1 = "   _   ";
+	string strLine2 = "  / \\  ";
+	string strLine3 = " /  )\\ ";
+	string strLine4 = " \\   / ";
+	string strLine5 = "  | |  ";
+	string strLine6 = " /___\\ ";
+
+	static string astrBishop_Clear[6] = { strLine1, strLine2, strLine3, strLine4, strLine5, strLine6 };
+
+	return astrBishop_Clear;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: GetAscii_Bishop_Filled
+// Abstract: Returns pointer to array of strings representing each line of the piece.
+// --------------------------------------------------------------------------------
+string* Board::GetAscii_Bishop_Filled()
+{
+	string strLine1 = "  ##   ";
+	string strLine2 = " ## #  ";
+	string strLine3 = "### ## ";
+	string strLine4 = " ####  ";
+	string strLine5 = " ####  ";
+	string strLine6 = "###### ";
+
+	static string astrBishop_Filled[6] = { strLine1, strLine2, strLine3, strLine4, strLine5, strLine6 };
+
+	return astrBishop_Filled;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: GetAscii_Queen_Clear
+// Abstract: Returns pointer to array of strings representing each line of the piece.
+// --------------------------------------------------------------------------------
+string* Board::GetAscii_Queen_Clear()
+{
+	string strLine1 = " * * * ";
+	string strLine2 = "\\_|_|_/";
+	string strLine3 = " |   | ";
+	string strLine4 = " \\   / ";
+	string strLine5 = " /   \\ ";
+	string strLine6 = "/_____\\";
+
+	static string astrQueen_Clear[6] = { strLine1, strLine2, strLine3, strLine4, strLine5, strLine6 };
+
+	return astrQueen_Clear;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: GetAscii_Queen_Filled
+// Abstract: Returns pointer to array of strings representing each line of the piece.
+// --------------------------------------------------------------------------------
+string* Board::GetAscii_Queen_Filled()
+{
+	string strLine1 = " * * * ";
+	string strLine2 = "## # ##";
+	string strLine3 = " ##### ";
+	string strLine4 = "  ###  ";
+	string strLine5 = " ##### ";
+	string strLine6 = "#######";
+
+	static string astrQueen_Filled[6] = { strLine1, strLine2, strLine3, strLine4, strLine5, strLine6 };
+
+	return astrQueen_Filled;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: GetAscii_King_Clear
+// Abstract: Returns pointer to array of strings representing each line of the piece.
+// --------------------------------------------------------------------------------
+string* Board::GetAscii_King_Clear()
+{
+	string strLine1 = "   +   ";
+	string strLine2 = "\\_____/";
+	string strLine3 = " /   \\ ";
+	string strLine4 = " \\   / ";
+	string strLine5 = " |   | ";
+	string strLine6 = "/_____\\";
+
+	static string astrKing_Clear[6] = { strLine1, strLine2, strLine3, strLine4, strLine5, strLine6 };
+
+	return astrKing_Clear;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: GetAscii_King_Filled
+// Abstract: Returns pointer to array of strings representing each line of the piece.
+// --------------------------------------------------------------------------------
+string* Board::GetAscii_King_Filled()
+{
+	string strLine1 = "#  +  #";
+	string strLine2 = "##   ##";
+	string strLine3 = " ##### ";
+	string strLine4 = " ##### ";
+	string strLine5 = " ##### ";
+	string strLine6 = "#######";
+
+	static string astrKing_Filled[6] = { strLine1, strLine2, strLine3, strLine4, strLine5, strLine6 };
+
+	return astrKing_Filled;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: GetAscii_Empty_Square
+// Abstract: Returns pointer to array of strings representing each line of the empty square.
+// --------------------------------------------------------------------------------
+string* Board::GetAscii_Empty_Square()
+{
+	string strLine1 = "       ";
+	string strLine2 = "       ";
+	string strLine3 = "       ";
+	string strLine4 = "       ";
+	string strLine5 = "       ";
+	string strLine6 = "       ";
+
+	static string astrKing_Filled[6] = { strLine1, strLine2, strLine3, strLine4, strLine5, strLine6 };
+
+	return astrKing_Filled;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: DisplayBoard_Simple()
 // Abstract: Prints the current board to the user. Prints the array Positions, in 
 // order, starting a new line after every 8 values printed. Uses each Piece's 
 // NotationName to print. Empty squares print as hyphens.
 // --------------------------------------------------------------------------------
-void Board::DisplayBoard(bool blnWhiteOrBlackTurn)
+void Board::DisplayBoard_Simple(bool blnWhiteOrBlackTurn)
 {
 	int intIndex = 0;
 	string strCurrentColorTurn = "";
@@ -135,6 +383,110 @@ void Board::DisplayBoard(bool blnWhiteOrBlackTurn)
 	else { strCurrentColorTurn = "Black"; }
 	cout << endl << strCurrentColorTurn << "'s turn to move." << endl;
 }
+
+
+// --------------------------------------------------------------------------------
+// Name: DisplayBoard_Ascii()
+// Abstract: Prints the current board to the user using ascii art for the pieces
+// --------------------------------------------------------------------------------
+void Board::DisplayBoard_Ascii(bool blnWhiteOrBlackTurn)
+{
+	int intIndex = 0;
+	string strCurrentColorTurn = "";
+	int aintRowNames[] = { 8, 7, 6, 5, 4, 3, 2, 1 };
+	char achrColumnNames[] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
+	char chrPiece = 0;
+	int intLineNumber = 0;
+	int intRow = 0;
+	
+	for (intIndex; intIndex <= 63; intIndex++)
+	{
+		if (intIndex % 8 == 0 && intLineNumber == 3) { cout << aintRowNames[intRow] << "     "; intRow += 1; }
+		else if ( intIndex % 8 == 0 ) { cout << "      "; }
+
+		PrintAsciiLetterLine(intIndex, intLineNumber);
+		if ((intIndex - 7) % 8 == 0 && intLineNumber != 6) { cout << endl; intIndex -= 8; intLineNumber++; }
+		if ((intIndex - 7) % 8 == 0 && intLineNumber == 6) { cout << endl; intIndex += 8;  intLineNumber = 0; }
+	}
+
+	cout << endl;
+
+	for (intIndex = 0; intIndex < 8; intIndex++)
+	{
+		if (intIndex == 0) { cout << "        "; }
+		cout << achrColumnNames[intIndex];
+		cout << "             ";
+	}
+
+	cout << endl << endl;
+
+	// display who's turn it is
+	if (blnWhiteOrBlackTurn == true) { strCurrentColorTurn = "White"; }
+	else { strCurrentColorTurn = "Black"; }
+	cout << endl << strCurrentColorTurn << "'s turn to move." << endl;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: PrintAsciiLetterLine()
+// Abstract: Prints a single line of one of the ascii-drawn pieces. Each piece has
+//			 exactly 6 lines tall, and each line is 7 chars wide. Line number is
+//			 zero-based.
+// --------------------------------------------------------------------------------
+void Board::PrintAsciiLetterLine(int intIndex, int intLineNumber)
+{
+	char chrNotationName = m_vecPositions[intIndex].ReturnNotationName();
+	bool blnColor = m_vecPositions[intIndex].ReturnPieceColor();
+
+	switch (chrNotationName)
+	{
+		// Knight
+		case 'N':
+			if (blnColor) { cout << m_pstrAscii_Knight_Filled[intLineNumber]; }
+			else { cout << m_pstrAscii_Knight_Clear[intLineNumber]; }
+			break;
+
+		// Bishop
+		case 'B':
+			if (blnColor) { cout << m_pstrAscii_Bishop_Filled[intLineNumber]; }
+			else { cout << m_pstrAscii_Bishop_Clear[intLineNumber]; }
+			break;
+
+		// Rook
+		case 'R':
+			if (blnColor) { cout << m_pstrAscii_Rook_Filled[intLineNumber]; }
+			else { cout << m_pstrAscii_Rook_Clear[intLineNumber]; }
+			break;
+
+		// Queen
+		case 'Q':
+			if (blnColor) { cout << m_pstrAscii_Queen_Filled[intLineNumber]; }
+			else { cout << m_pstrAscii_Queen_Clear[intLineNumber]; }
+			break;
+
+		// King
+		case 'K':
+			if (blnColor) { cout << m_pstrAscii_King_Filled[intLineNumber]; }
+			else { cout << m_pstrAscii_King_Clear[intLineNumber]; }
+			break;
+
+		// Pawn
+		case 'P':
+			if (blnColor) { cout << m_pstrAscii_Pawn_Filled[intLineNumber]; }
+			else { cout << m_pstrAscii_Pawn_Clear[intLineNumber]; }
+			break;
+	
+		// Empty square
+		case '-':
+			if (blnColor) { cout << m_pstrAscii_Empty_Square[intLineNumber]; }
+			else { cout << m_pstrAscii_Empty_Square[intLineNumber]; }
+			break;
+	}
+
+	cout << "       ";
+}
+
+
 
 // --------------------------------------------------------------------------------
 // Name: SwapSquares()
@@ -406,7 +758,7 @@ bool Board::IsKingInCheck(bool blnWhiteOrBlackTurn, int intPosition)
 
 	// check vertical pathway, up, until a piece is hit -------------------------------------------------------------------------------
 	intIndex = intPosition;
-	while (intIndex >= 7)
+	while (intIndex > 7)
 	{
 		intIndex -= 8;
 		chrPiece = m_vecPositions[intIndex].ReturnNotationName();
@@ -431,7 +783,7 @@ bool Board::IsKingInCheck(bool blnWhiteOrBlackTurn, int intPosition)
 
 	// check vertical pathway, down, until a piece is hit -----------------------------------------------------------------------------
 	intIndex = intPosition;
-	while (intIndex <= 56)
+	while (intIndex < 56)
 	{
 		intIndex += 8;
 		chrPiece = m_vecPositions[intIndex].ReturnNotationName();
@@ -586,8 +938,7 @@ bool Board::IsKingInCheck(bool blnWhiteOrBlackTurn, int intPosition)
 	// check for attacking Knights ---------------------------------------------------------------------------------------------
 
 	// Here are the 'L' patterns that should be seen as emitting from the center of the graph. Consider the king's position to be the center,
-	// and a knight to be at the end of each 'L' pattern.
-	// Each pattern has a letter corresponding to the resulting index of that 'L'-pattern check.
+	// and a potential knight to be at the end of each 'L' pattern.
 	//  
 	//   A_____B
 	//  H	|   C

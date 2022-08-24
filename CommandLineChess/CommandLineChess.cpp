@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <fstream>
+#include <string>
 #include "Board.h"
 #include "Piece.h"
 using namespace std;
@@ -82,7 +83,9 @@ int main()
 // --------------------------------------------------------------------------------
 void TurnDisplay(Board* clsBoard, bool blnWhiteOrBlackTurn, string* strErrorMessageToUser, string* strMessageToUser)
 {
-	(*clsBoard).DisplayBoard(blnWhiteOrBlackTurn); // print the board
+	//(*clsBoard).DisplayBoard_Simple(blnWhiteOrBlackTurn); // print the board
+	(*clsBoard).DisplayBoard_Ascii(blnWhiteOrBlackTurn); // print the board
+	
 
 	if (*strErrorMessageToUser != "")
 	{ 
@@ -534,33 +537,44 @@ bool MovePiece_Castle(bool blnKingside, bool blnWhiteOrBlackTurn, Board* clsBoar
 	if ((*clsBoard).GetNotationName(intKingIndex) == 'K' && (*clsBoard).GetNotationName(intRookIndex) == 'R')
 	{
 		// see if either piece has moved yet
-		if ((*clsBoard).m_vecPositions[intKingIndex].ReturnMoveCount() == 0 &&
-			(*clsBoard).m_vecPositions[intRookIndex].ReturnMoveCount() == 0)
+		if ((*clsBoard).m_vecPositions[intKingIndex].ReturnMoveCount() == 0)
 		{
-			// set king-pathway direction for checking
-			if (blnKingside) { intIncrement = 1; } else { intIncrement = -1; } // first, see which direction to check in
-
-			// see if there are any pieces in the immediate pathway between king and rook
-			if ((*clsBoard).m_vecPositions[intKingIndex + intIncrement].ReturnNotationName() == '-' && (*clsBoard).m_vecPositions[intKingIndex + (intIncrement * 2)].ReturnNotationName() == '-')
+			if ((*clsBoard).m_vecPositions[intRookIndex].ReturnMoveCount() == 0)
 			{
-				// see if king is in check in current, passing, and final square before moving
-				if ((*clsBoard).IsKingInCheck(blnWhiteOrBlackTurn, intKingIndex) && (*clsBoard).IsKingInCheck(blnWhiteOrBlackTurn, intKingIndex + intIncrement) &&
-					(*clsBoard).IsKingInCheck(blnWhiteOrBlackTurn, intKingIndex + (intIncrement * 2)))
+				// set king-pathway direction for checking
+				if (blnKingside) { intIncrement = 1; }
+				else { intIncrement = -1; } // first, see which direction to check in
+
+				// see if there are any pieces in the immediate pathway between king and rook
+				if ((*clsBoard).m_vecPositions[intKingIndex + intIncrement].ReturnNotationName() == '-' && (*clsBoard).m_vecPositions[intKingIndex + (intIncrement * 2)].ReturnNotationName() == '-')
 				{
-					
+					// see if king is in check in current, passing, and final square before moving
+					if ((*clsBoard).IsKingInCheck(blnWhiteOrBlackTurn, intKingIndex) == false)
+					{
+						if ((*clsBoard).IsKingInCheck(blnWhiteOrBlackTurn, intKingIndex + intIncrement) == false)
+						{
+							if ((*clsBoard).IsKingInCheck(blnWhiteOrBlackTurn, intKingIndex + (intIncrement * 2)) == false)
+							{
+								// castling is now seen as legal, now we can make the move
+								(*clsBoard).SwapSquares(intKingIndex, intKingIndex + (intIncrement * 2));
+								(*clsBoard).SwapSquares(intRookIndex, intKingIndex + intIncrement);
+								blnMoveSuccessful = true;
+							}
+							else { *strErrorMessageToUser = "Castling failed. Your king would be landing on check."; }
+						}
+						else { *strErrorMessageToUser = "Castling failed. You cannot castle through check."; }
+					}
+					else { *strErrorMessageToUser = "You cannot castle while your king is in check."; }
 				}
+				else { *strErrorMessageToUser = "Castling attempt failed. There are pieces in the way."; }
 			}
-
-			
-			//// see if king is in check after moving
-			//// see if king passes through check during move
+			else if (blnKingside) { *strErrorMessageToUser = "Castling kingside is not possible. That side's rook has already moved at least once.";}
+			else { *strErrorMessageToUser = "Castling queenside is not possible. That side's rook has already moved at least once.";}
 		}
+		else { *strErrorMessageToUser = "Castling is not possible. Your king has already moved at least once."; }
 	}
-
-	// make the move. Simple swap for now. Will elaborate later.
-	//(*clsBoard).SwapSquares(intPieceStartIndex, intDestinationIndex);
-
-	blnMoveSuccessful = true;
+	else if (blnKingside) { *strErrorMessageToUser = "Castling kingside is not possible. Your pieces are not on the appropriate squares."; }
+	else { *strErrorMessageToUser = "Castling queenside is not possible. Your pieces are not on the appropriate squares."; }
 
 	return blnMoveSuccessful;
 }
