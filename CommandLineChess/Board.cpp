@@ -354,7 +354,7 @@ bool Board::IsKingInCheck(bool blnWhiteOrBlackTurn, int intPosition)
 
 	bool IsInCheck = false;
 
-	// check horizontal pathway, left, until a piece is hit
+	// check horizontal pathway, left, until a piece is hit --------------------------------------------------------------------------
 	intIndex = intPosition;
 	while (intIndex % 8 != 0)
 	{
@@ -373,12 +373,13 @@ bool Board::IsKingInCheck(bool blnWhiteOrBlackTurn, int intPosition)
 					IsInCheck = true;
 					break;
 				}
+				else { break; }
 			}
 			else { break; }
 		}
 	}
 
-	// check horizontal pathway, right, until a piece is hit
+	// check horizontal pathway, right, until a piece is hit --------------------------------------------------------------------------
 	intIndex = intPosition;
 	while ((intIndex - 7) % 8 != 0)
 	{
@@ -397,12 +398,13 @@ bool Board::IsKingInCheck(bool blnWhiteOrBlackTurn, int intPosition)
 					IsInCheck = true;
 					break;
 				}
+				else { break; }
 			}
 			else { break; }
 		}
 	}
 
-	// check vertical pathway, up, until a piece is hit
+	// check vertical pathway, up, until a piece is hit -------------------------------------------------------------------------------
 	intIndex = intPosition;
 	while (intIndex >= 7)
 	{
@@ -421,12 +423,13 @@ bool Board::IsKingInCheck(bool blnWhiteOrBlackTurn, int intPosition)
 					IsInCheck = true;
 					break;
 				}
+				else { break; }
 			}
 			else { break; }
 		}
 	}
 
-	// check vertical pathway, down, until a piece is hit
+	// check vertical pathway, down, until a piece is hit -----------------------------------------------------------------------------
 	intIndex = intPosition;
 	while (intIndex <= 56)
 	{
@@ -445,19 +448,324 @@ bool Board::IsKingInCheck(bool blnWhiteOrBlackTurn, int intPosition)
 					IsInCheck = true;
 					break;
 				}
+				else { break; }
+			}
+			else { break; }
+		}
+	}
+
+	// check diagonal pathway, northwest, until a piece is hit ------------------------------------------------------------------------
+	intIndex = intPosition;
+	while (intIndex % 8 != 0 && intIndex > 7)
+	{
+		intIndex -= 9;
+		chrPiece = m_vecPositions[intIndex].ReturnNotationName();
+		if (chrPiece != '-')
+		{
+			// Because we've found a piece that is directly in a line with the king,
+			// we see if it is threatening the king based on how the piece moves.
+
+			// check if it is the opponent's piece
+			if (m_vecPositions[intIndex].ReturnPieceColor() == !blnWhiteOrBlackTurn)
+			{
+				// from this direction, attacking pawn must be black
+				if (chrPiece == 'P' && intIndex == intPosition - 9 && !blnWhiteOrBlackTurn == false)
+				{
+					IsInCheck = true;
+					break;
+				}
+
+				if (chrPiece == 'Q' || chrPiece == 'B')
+				{
+					IsInCheck = true;
+					break;
+				}
+				else { break; }
+			}
+			else { break; }
+		}
+	}
+
+	// check diagonal pathway, southwest, until a piece is hit ------------------------------------------------------------------------
+	intIndex = intPosition;
+	while (intIndex % 8 != 0 && intIndex < 56)
+	{
+		intIndex += 7;
+		chrPiece = m_vecPositions[intIndex].ReturnNotationName();
+		if (chrPiece != '-')
+		{
+			// Because we've found a piece that is directly in a line with the king,
+			// we see if it is threatening the king based on how the piece moves.
+
+			// check if it is the opponent's piece
+			if (m_vecPositions[intIndex].ReturnPieceColor() == !blnWhiteOrBlackTurn)
+			{
+				// from this direction, attacking pawn must be white
+				if (chrPiece == 'P' && intIndex == intPosition + 7 && !blnWhiteOrBlackTurn == true)
+				{
+					IsInCheck = true;
+					break;
+				}
+
+				if (chrPiece == 'Q' || chrPiece == 'B')
+				{
+					IsInCheck = true;
+					break;
+				}
+				else { break; }
+			}
+			else { break; }
+		}
+	}
+
+	// check diagonal pathway, southeast, until a piece is hit ------------------------------------------------------------------------
+	intIndex = intPosition;
+	while ((intIndex - 7) % 8 != 0 && intIndex < 56)
+	{
+		intIndex += 9;
+		chrPiece = m_vecPositions[intIndex].ReturnNotationName();
+		if (chrPiece != '-')
+		{
+			// Because we've found a piece that is directly in a line with the king,
+			// we see if it is threatening the king based on how the piece moves.
+
+			// check if it is the opponent's piece
+			if (m_vecPositions[intIndex].ReturnPieceColor() == !blnWhiteOrBlackTurn)
+			{
+				// from this direction, attacking pawn must be white
+				if (chrPiece == 'P' && intIndex == intPosition + 9 && !blnWhiteOrBlackTurn == true)
+				{
+					IsInCheck = true;
+					break;
+				}
+
+				if (chrPiece == 'Q' || chrPiece == 'B')
+				{
+					IsInCheck = true;
+					break;
+				}
+				else { break; }
+			}
+			else { break; }
+		}
+	}
+
+	// check diagonal pathway, northeast, until a piece is hit ------------------------------------------------------------------------
+	intIndex = intPosition;
+	while ((intIndex - 7) % 8 != 0 && intIndex > 7)
+	{
+		intIndex -= 7;
+		chrPiece = m_vecPositions[intIndex].ReturnNotationName();
+		if (chrPiece != '-')
+		{
+			// Because we've found a piece that is directly in a line with the king,
+			// we see if it is threatening the king based on how the piece moves.
+
+			// check if it is the opponent's piece
+			if (m_vecPositions[intIndex].ReturnPieceColor() == !blnWhiteOrBlackTurn)
+			{
+				// from this direction, attacking pawn must be black
+				if (chrPiece == 'P' && intIndex == intPosition - 7 && !blnWhiteOrBlackTurn == false)
+				{
+					IsInCheck = true;
+					break;
+				}
+
+				if (chrPiece == 'Q' || chrPiece == 'B')
+				{
+					IsInCheck = true;
+					break;
+				}
+				else { break; }
 			}
 			else { break; }
 		}
 	}
 
 
+	// check for attacking Knights ---------------------------------------------------------------------------------------------
+
+	// Here are the 'L' patterns that should be seen as emitting from the center of the graph. Consider the king's position to be the center,
+	// and a knight to be at the end of each 'L' pattern.
+	// Each pattern has a letter corresponding to the resulting index of that 'L'-pattern check.
+	//  
+	//   A_____B
+	//  H	|   C
+	//  |___|___|
+	//  |	|   |
+	//  G __|__ D
+	//    F   E
+
+	intIndex = intPosition;
+	int intA = intPosition - 17;
+	int intB = intPosition - 15;
+	int intC = intPosition - 6;
+	int intD = intPosition + 10;
+	int intE = intPosition + 17;
+	int intF = intPosition + 15;
+	int intG = intPosition + 6;
+	int intH = intPosition - 10;
+	
+	if (intPosition == 0) // if starting in file 'a' and row 8
+	{
+		int aintDirections[2] = { intD, intE };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 2, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition == 8)// if starting in file 'a' and row 7
+	{
+		int aintDirections[3] = { intD, intE, intC };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition == 48) // if starting in file 'a' and row 2
+	{
+		int aintDirections[3] = { intB, intC, intD };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition == 56) // if starting in file 'a' and row 1
+	{
+		int aintDirections[2] = { intB, intC };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 2, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition == 1) // if starting in file 'b' and row 8
+	{
+		int aintDirections[3] = { intE, intF, intD };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition == 9) // if starting in file 'b' and row 7
+	{
+		int aintDirections[4] = { intE, intF, intD, intC };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
+	}	
+	else if (intPosition == 49) // if starting in file 'b' and row 2
+	{
+		int aintDirections[4] = { intA, intB, intD, intC };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition == 57) // if starting in file 'b' and row 1
+	{
+		int aintDirections[3] = { intA, intB, intC };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition == 6) // if starting in file 'g' and row 8
+	{
+		int aintDirections[3] = { intE, intF, intG };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition == 14) // if starting in file 'g' and row 7
+	{
+		int aintDirections[4] = { intE, intF, intG, intH };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition == 54) // if starting in file 'g' and row 2
+	{
+		int aintDirections[4] = { intA, intB, intG, intH };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition == 62) // if starting in file 'g' and row 1
+	{
+		int aintDirections[3] = { intA, intB, intH };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition == 7) // if starting in file 'h' and row 8
+	{
+		int aintDirections[2] = { intG, intF };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 2, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition == 15) // if starting in file 'h' and row 7
+	{
+		int aintDirections[3] = { intG, intF, intH };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition == 55) // if starting in file 'h' and row 2
+	{
+		int aintDirections[3] = { intG, intA, intH };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition == 63) // if starting in file 'h' and row 1
+	{
+		int aintDirections[2] = { intH, intA };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 2, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition >= 0 && intPosition <= 7) // if starting in row 8, and not limited by right or left edge
+	{
+		int aintDirections[4] = { intG, intD, intF, intE };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition >= 8 && intPosition <= 15) // if starting in row 7, and not limited by right or left edge
+	{
+		int aintDirections[6] = { intG, intD, intF, intE, intC, intH };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 6, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition >= 48 && intPosition <= 55) // if starting in row 2, and not limited by right or left edge
+	{
+		int aintDirections[6] = { intC, intH, intB, intA, intG, (intPosition + 10) };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 6, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition >= 56 && intPosition <= 63) // if starting in row 1, and not limited by right or left edge
+	{
+		int aintDirections[4] = { intC, intH, intB, intA };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
+	}
+	else if (intPosition % 8 == 0) // if starting in file 'a' and not limited by top or bottom edge
+	{
+		int aintDirections[4] = { intE, intB, intC, intD };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
+	}
+	else if ((intPosition - 1) % 8 == 0) // if starting in file 'b' and not limited by top or bottom edge
+	{
+		int aintDirections[6] = { intE, intB, intC, intD, intA, intF };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 6, blnWhiteOrBlackTurn);
+	}
+	else if ((intPosition - 6) % 8 == 0) // if starting in file 'g' and not limited by top or bottom edge
+	{
+		int aintDirections[6] = { intE, intB, intG, intH, intA, intF };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 6, blnWhiteOrBlackTurn);
+	}
+	else if ((intPosition - 7) % 8 == 0) // if starting in file 'h' and not limited by top or bottom edge
+	{
+		int aintDirections[4] = { intA, intF, intG, intH };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
+	}
+	else
+	{
+		// As default, from the king's point of view, set all 8 squares for checking for a knight's check.
+		int aintDirections[8] = { intA, intB, intC, intD, intE, intF, intG, intH };
+		IsInCheck = CheckKnightPatternArray(aintDirections, 8, blnWhiteOrBlackTurn);
+	}
 
 	return IsInCheck;
 }
 
 
+
 // --------------------------------------------------------------------------------
-// Name: GetPieceIndex()
+// Name: CheckKnightPatternArray()
+// Abstract: Checks all values in the given array against the board position,
+//			 and returns true if an opposing knight piece is found on the board
+//			 position that the value represents.
+// --------------------------------------------------------------------------------
+bool Board::CheckKnightPatternArray(int aintDirections[], int intArraySize, bool blnWhiteOrBlackTurn)
+{
+	bool blnIsInCheck = false;
+	int intIndex = 0;
+
+	for (intIndex = 0; intIndex < intArraySize; intIndex++)
+	{
+		if (m_vecPositions[aintDirections[intIndex]].ReturnNotationName() == 'N'
+			&& m_vecPositions[aintDirections[intIndex]].ReturnPieceColor() == !blnWhiteOrBlackTurn)
+		{
+			blnIsInCheck = true;
+			return blnIsInCheck;
+		}
+	}
+
+	return blnIsInCheck;
+}
+
+
+
+// --------------------------------------------------------------------------------
+// Name: GetKingIndex()
 // Abstract: Finds the index of the current player's king. Returns -1 if no king
 // is found, but this should not happen.
 // --------------------------------------------------------------------------------

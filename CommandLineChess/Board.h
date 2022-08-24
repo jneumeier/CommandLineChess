@@ -66,6 +66,7 @@ public:
 	bool GetPieceColor(int intSquareIndex);
 	bool CheckMovePath(int intPieceStartIndex, int intDestinationIndex);
 	bool IsKingInCheck(bool blnWhiteOrBlackTurn, int intPosition);
+	bool CheckKnightPatternArray(int aintDirections[], int intArraySize, bool blnWhiteOrBlackTurn);
 	int GetKingIndex(bool blnWhiteOrBlackTurn);
 
 protected:

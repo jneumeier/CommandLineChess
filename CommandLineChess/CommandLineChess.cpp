@@ -269,11 +269,12 @@ bool HandleCheckStatus(Board* clsBoard, Board* clsBoardCopy, bool blnWhiteOrBlac
 		if ((*clsBoard).IsKingInCheck(blnWhiteOrBlackTurn, intKingIndex))
 		{
 			blnMoveSuccessful = false;
-			*pblnCurrentPlayerCheckStatus = true;
+			// *pblnCurrentPlayerCheckStatus = true;
 			*clsBoard = *clsBoardCopy; // Now that we know check has resulted from current turn's move, board goes back to its state before current turn's move was made.
 			if (strMove[0] == 'K' && *pblnCurrentPlayerCheckStatus == true) { *strErrorMessageToUser = "Invalid move. Your king cannot escape check there."; }
 			else if (strMove[0] == 'K' && *pblnCurrentPlayerCheckStatus == false) { *strErrorMessageToUser = "Invalid move. Your king would enter check there."; }
-			else { *strErrorMessageToUser = "Invalid move."; }
+			else if (*pblnCurrentPlayerCheckStatus == true) { *strErrorMessageToUser = "Invalid move. That does not help your king escape check."; }
+			else { *strErrorMessageToUser = "Invalid move. That would put your king in check."; }
 		}
 		else { *pblnCurrentPlayerCheckStatus = false; }
 	}
@@ -330,12 +331,15 @@ bool MovePiece_Pawn(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, s
 	int intDestinationIndex = 0;
 	int intPieceStartIndex = 0;
 
-	// find the index for the square to move to
+	// find the index for the piece to move to
 	intDestinationIndex = (*clsBoard).GetPositionIndex(strMove[0], strMove[1]);
+
+	// if landing position already has a piece on it, don't allow the move
+	if ((*clsBoard).GetNotationName(intDestinationIndex) != '-') { intPieceStartIndex = -1; }
 
 	// search for a pawn one or two squares behind the desired move
 	// if white
-	if (blnWhiteOrBlackTurn == true)
+	else if (blnWhiteOrBlackTurn == true)
 	{
 		// search for a pawn one square behind desired move
 		if ((*clsBoard).m_vecPositions[intDestinationIndex + 8].ReturnNotationName() == 'P' &&
@@ -356,7 +360,7 @@ bool MovePiece_Pawn(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, s
 	}
 
 	// if black
-	if (blnWhiteOrBlackTurn == false)
+	else if (blnWhiteOrBlackTurn == false)
 	{
 		// search for a pawn one square behind desired move
 		if ((*clsBoard).m_vecPositions[intDestinationIndex - 8].ReturnNotationName() == 'P' &&
@@ -376,12 +380,8 @@ bool MovePiece_Pawn(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, s
 		else { intPieceStartIndex = -1; }
 	}
 
-	// if landing position already has a piece on it, don't allow the move
-	if ((*clsBoard).GetNotationName(intDestinationIndex) != '-') { intPieceStartIndex = -1; }
-
 	// Give error messages if move is invalid, else, make the move!
 	if (intPieceStartIndex == -1) { *strErrorMessageToUser += "Attempted move is invalid. "; blnMoveSuccessful = false; }
-
 	else
 	{
 		// make the move. Simple swap for now. Will elaborate later.

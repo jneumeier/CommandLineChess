@@ -185,7 +185,7 @@ bool Piece::CheckMovement_Knight(int intCurrentPosition, int intDesiredPosition,
 	else { blnValidMove = false; return blnValidMove; }
 
 
-	// check if they are possible, given that the Knight is near a border
+	// check if they are possible, if the Knight is near a border
 
 	// if starting in file 'a'
 	if (intCurrentPosition % 8 == 0 || intCurrentPosition == 0)
