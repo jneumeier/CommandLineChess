@@ -399,21 +399,27 @@ void Board::DisplayBoard_Ascii(bool blnWhiteOrBlackTurn)
 	int intLineNumber = 0;
 	int intRow = 0;
 	
+	cout << "       ______________________________________________________________________________________________________________" << endl;
+
 	for (intIndex; intIndex <= 63; intIndex++)
 	{
 		if (intIndex % 8 == 0 && intLineNumber == 3) { cout << aintRowNames[intRow] << "     "; intRow += 1; }
 		else if ( intIndex % 8 == 0 ) { cout << "      "; }
 
+		if (intIndex % 8 == 0) { cout << "|  "; }
+
 		PrintAsciiLetterLine(intIndex, intLineNumber);
 		if ((intIndex - 7) % 8 == 0 && intLineNumber != 6) { cout << endl; intIndex -= 8; intLineNumber++; }
-		if ((intIndex - 7) % 8 == 0 && intLineNumber == 6) { cout << endl; intIndex += 8;  intLineNumber = 0; }
+		if ((intIndex - 7) % 8 == 0 && intLineNumber == 6) { intIndex += 8;  intLineNumber++; }
+		if (intLineNumber == 7) { cout << "       ______________________________________________________________________________________________________________" << endl; intLineNumber = 0;
+		}
 	}
 
 	cout << endl;
 
 	for (intIndex = 0; intIndex < 8; intIndex++)
 	{
-		if (intIndex == 0) { cout << "        "; }
+		if (intIndex == 0) { cout << "            "; }
 		cout << achrColumnNames[intIndex];
 		cout << "             ";
 	}
@@ -483,7 +489,7 @@ void Board::PrintAsciiLetterLine(int intIndex, int intLineNumber)
 			break;
 	}
 
-	cout << "       ";
+	cout << "   |   ";
 }
 
 

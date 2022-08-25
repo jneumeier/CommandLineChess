@@ -59,6 +59,9 @@ int main()
 	// start game loop. Exits loop when break is triggered
 	while(1)
 	{
+
+
+
 		clsBoardCopy = clsBoard; // copy board so reversion is possible within current move (used for HandleCheckStatus)
 		TurnDisplay(&clsBoard, blnWhiteOrBlackTurn, &strErrorMessageToUser, &strMessageToUser); // run the current turn's display
 		strMove = GetMove(); // get the move from the user
