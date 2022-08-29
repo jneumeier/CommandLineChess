@@ -35,7 +35,7 @@ bool HandleCheckStatus(Board* clsBoard, Board* clsBoardCopy, bool blnWhiteOrBlac
 bool CheckForPieceAscii(int intPieceAscii);
 bool CheckForSquareAscii(int intColumn, int intRow);
 bool MovePiece_Pawn(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser);
-bool MovePiece_3Char(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser);
+bool MovePiece(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser);
 bool MovePiece_Capture(char chrPieceMoving, char chrSquareLetter_Dest, char chrSquareNumber_Dest, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser);
 bool MovePiece_Castle(bool blnKingside, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser);
 
@@ -59,9 +59,6 @@ int main()
 	// start game loop. Exits loop when break is triggered
 	while(1)
 	{
-
-
-
 		clsBoardCopy = clsBoard; // copy board so reversion is possible within current move (used for HandleCheckStatus)
 		TurnDisplay(&clsBoard, blnWhiteOrBlackTurn, &strErrorMessageToUser, &strMessageToUser); // run the current turn's display
 		strMove = GetMove(); // get the move from the user
@@ -201,14 +198,8 @@ bool MakeMove(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string 
 	int intDestinationIndex = 0;
 	int intPieceStartIndex = 0;
 
-	// If given move is in format--> example: Ke4, then, make the move.
-	if (strMove.length() == 3 && CheckForPieceAscii(strMove[0]) == true && CheckForSquareAscii(strMove[1], strMove[2]) == true)
-	{
-		blnMoveSuccessful = MovePiece_3Char(strMove, blnWhiteOrBlackTurn, clsBoard, strErrorMessageToUser);
-	}
-
 	// Entry format ex. e4, make the move. (this is for pawns only)
-	else if (strMove.length() == 2 && CheckForSquareAscii(strMove[0], strMove[1]) == true)
+	if (strMove.length() == 2 && CheckForSquareAscii(strMove[0], strMove[1]) == true)
 	{
 		blnMoveSuccessful = MovePiece_Pawn(strMove, blnWhiteOrBlackTurn, clsBoard, strErrorMessageToUser);
 	}
@@ -219,9 +210,9 @@ bool MakeMove(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string 
 		blnMoveSuccessful = MovePiece_Capture(strMove[0], strMove[2], strMove[3], blnWhiteOrBlackTurn, clsBoard, strErrorMessageToUser);
 	}
 
-	// If given move is in format--> example: Bae5, then, make the move.
-	// If given move is in format--> example: Qa4e5, then, make the move.
-	// If given move is in format--> example: B1e5, then, make the move.
+	
+	
+
 	// If given move is in format--> example: Bfxe5, then, make the move.
 	// If given move is in format--> example: Bf4xe5, then, make the move.
 
@@ -235,6 +226,7 @@ bool MakeMove(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string 
 	{
 		blnMoveSuccessful = MovePiece_Castle(false, blnWhiteOrBlackTurn, clsBoard, strErrorMessageToUser);
 	}
+	else { blnMoveSuccessful = MovePiece(strMove, blnWhiteOrBlackTurn, clsBoard, strErrorMessageToUser); }
 
 	return blnMoveSuccessful;
 }
@@ -400,22 +392,64 @@ bool MovePiece_Pawn(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, s
 }
 
 // --------------------------------------------------------------------------------
-// Name: MovePiece_3Char
+// Name: MovePiece
 // Abstract: Moves a piece on the board
 // --------------------------------------------------------------------------------
-bool MovePiece_3Char(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser)
+bool MovePiece(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser)
 {
 	bool blnMoveSuccessful = false;
 	int intDestinationIndex = 0;
 	int intPieceStartIndex = 0;
 
-	// find the index for the square to move to
-	intDestinationIndex = (*clsBoard).GetPositionIndex(strMove[1], strMove[2]);
 
-	// find the index for the square of the given piece. Will equal -1 if nonexistent.
-	// -2 if more than one of same type piece can get to the square.
-	// This also validates if the piece can make the move.
-	intPieceStartIndex = (*clsBoard).GetPieceIndex(strMove[0], intDestinationIndex, blnWhiteOrBlackTurn);
+	// If given move is in format--> example: Ke4, then, make the move.
+	if (strMove.length() == 3 && CheckForPieceAscii(strMove[0]) == true && CheckForSquareAscii(strMove[1], strMove[2]) == true)
+	{
+		// find the index for the square to move to
+		intDestinationIndex = (*clsBoard).GetPositionIndex(strMove[1], strMove[2]);
+
+		// find the index for the square of the given piece. Will equal -1 if nonexistent.
+		// -2 if more than one of same type piece can get to the square. This also validates if the piece can make the move.
+		intPieceStartIndex = (*clsBoard).GetPieceIndex(strMove[0], 0, 0, intDestinationIndex, blnWhiteOrBlackTurn);
+	}
+
+	// If given move is in format--> example: Bae5, then, make the move.
+	else if (strMove.length() == 4 && CheckForPieceAscii(strMove[0]) && CheckForSquareAscii(strMove[2], strMove[3])
+		&& strMove[1] >= 97 && strMove[1] <= 104)
+	{
+		// find the index for the square to move to
+		intDestinationIndex = (*clsBoard).GetPositionIndex(strMove[2], strMove[3]);
+
+		// find the index for the square of the given piece. Will equal -1 if nonexistent.
+		// -2 if more than one of same type piece can get to the square. This also validates if the piece can make the move.
+		intPieceStartIndex = (*clsBoard).GetPieceIndex(strMove[0], strMove[1], 0, intDestinationIndex, blnWhiteOrBlackTurn);
+	}
+
+	// If given move is in format--> example: B1e5, then, make the move.
+	else if (strMove.length() == 4 && CheckForPieceAscii(strMove[0]) && CheckForSquareAscii(strMove[2], strMove[3])
+		&& strMove[1] >= 1 && strMove[1] <= 8)
+	{
+		// find the index for the square to move to
+		intDestinationIndex = (*clsBoard).GetPositionIndex(strMove[2], strMove[3]);
+
+		// find the index for the square of the given piece. Will equal -1 if nonexistent.
+		// -2 if more than one of same type piece can get to the square. This also validates if the piece can make the move.
+		intPieceStartIndex = (*clsBoard).GetPieceIndex(strMove[0], 0, strMove[1], intDestinationIndex, blnWhiteOrBlackTurn);
+	}
+
+	// If given move is in format--> example: Qa4e5, then, make the move.
+	else if (strMove.length() == 5 && CheckForPieceAscii(strMove[0]) && CheckForSquareAscii(strMove[3], strMove[4])
+		&& CheckForSquareAscii(strMove[1], strMove[2]))
+	{
+		// find the index for the square to move to
+		intDestinationIndex = (*clsBoard).GetPositionIndex(strMove[3], strMove[4]);
+
+		// find the index for the square of the given piece. Will equal -1 if nonexistent.
+		// -2 if more than one of same type piece can get to the square. This also validates if the piece can make the move.
+		intPieceStartIndex = (*clsBoard).GetPieceIndex(strMove[0], strMove[1], strMove[2], intDestinationIndex, blnWhiteOrBlackTurn);
+	}
+
+
 
 	// Check if there is any piece in the way during moving (Knight is excluded by rule)
 	if (strMove[0] != 'N' && intPieceStartIndex != -1 && intPieceStartIndex != -2)
@@ -473,7 +507,7 @@ bool MovePiece_Capture(char chrPieceMoving, char chrSquareLetter_Dest, char chrS
 	// find the index for the square of the given piece. Will equal -1 if nonexistent.
 	// -2 if more than one of same type piece can get to the square.
 	// This also validates if the piece can make the move.
-	intPieceStartIndex = (*clsBoard).GetPieceIndex(chrPieceMoving, intDestinationIndex, blnWhiteOrBlackTurn);
+	intPieceStartIndex = (*clsBoard).GetPieceIndex(chrPieceMoving, 0, 0, intDestinationIndex, blnWhiteOrBlackTurn);
 
 	// check if there is nothing on target square
 	if ((*clsBoard).GetNotationName(intDestinationIndex) == '-')

@@ -12,9 +12,6 @@ Current Version:	v0.1
 How To Run:
 *********************
 - Clone this repository into Visual Studio and press Run
-- Or, drag the .exe file in the debug folder into your command prompt and press Enter.
-
-
 
 *********************
 About This Program:
@@ -28,14 +25,10 @@ The game currently has core mechanics in place, and pieces can be moved and capt
 *********************
 To Implement:
 *********************
-- To ensure capturing and moving of all algebraic notation calls are utilized. Only calls in format examples "e4", "Rd4", "Qxb5", and "exd5" are currently possible.
-
+- To ensure capturing and moving of all algebraic notation calls are utilized.
 - game concept of checkmate
 - vectors to hold captured pieces
 - display captured pieces
-- Title screen with main menu before starting the game
-- Option to display the main menu at any time
+- Main Menu
 - Undo
-- Ascii Art-style chessboard (will be much larger on the screen)
 - Ability to load/save .pgn files
-- more stuff later!!!

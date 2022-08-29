@@ -569,9 +569,10 @@ int Board::GetPositionIndex(int intColumn, int intRow)
 // is given only as an ascii value (or char). Returns -1 if piece does not exist.
 // -2 if more than one piece of same type can make the move.
 // This is partially improperly named--It does check for where the piece is, but
-// also must be used to find a destination spot.
+// also must be used to find a destination spot. Enter 0 for intPieceFile and/or
+// intPieceRow if these are not supplied by the calling procedure.
 // --------------------------------------------------------------------------------
-int Board::GetPieceIndex(int intPieceAsciiValue, int intDesiredPosition, bool blnWhiteOrBlackTurn)
+int Board::GetPieceIndex(int intPieceAsciiValue, int intPieceFile, int intPieceRow, int intDesiredPosition, bool blnWhiteOrBlackTurn)
 {
 	int intIndex = 0;
 	int intPieceIndex = -1;
@@ -597,10 +598,37 @@ int Board::GetPieceIndex(int intPieceAsciiValue, int intDesiredPosition, bool bl
 			}
 		}
 	}
-	// if not a pawn
-	else
+	// if not a pawn, and no file or row given
+	else if(intPieceFile == 0 && intPieceRow == 0)
 	{
 		for (intIndex = 0; intIndex < 64; intIndex++)
+		{
+			if (m_vecPositions[intIndex].ReturnNotationName() == intPieceAsciiValue &&
+				m_vecPositions[intIndex].ReturnPieceColor() == blnWhiteOrBlackTurn)
+			{
+				// first, check to see if another piece of same type has already been verified
+				// during this For loop to make the move.
+				if (blnMoveIsPossible == true &&
+					CheckMovePath(intIndex, intDesiredPosition) && m_vecPositions[intIndex].CheckIfValidMove(intIndex, intDesiredPosition, blnWhiteOrBlackTurn))
+				{
+					intPieceIndex = -2; break; // -2 represents that 2 or more pieces can make the move
+				}
+
+				// check to see if it can make the move
+				if (CheckMovePath(intIndex, intDesiredPosition) && m_vecPositions[intIndex].CheckIfValidMove(intIndex, intDesiredPosition, blnWhiteOrBlackTurn))
+				{
+					blnMoveIsPossible = true;
+				}
+				else { blnMoveIsPossible = false; }
+
+				if (blnMoveIsPossible == true) { intPieceIndex = intIndex; }
+			}
+		}
+	}
+	// if not a pawn, and only the file is given
+	else if (intPieceFile != 0 && intPieceRow == 0)
+	{
+		for (intIndex = intPieceFile - 97; intIndex < 64; intIndex += 8)
 		{
 			if (m_vecPositions[intIndex].ReturnNotationName() == intPieceAsciiValue &&
 				m_vecPositions[intIndex].ReturnPieceColor() == blnWhiteOrBlackTurn)
@@ -618,6 +646,54 @@ int Board::GetPieceIndex(int intPieceAsciiValue, int intDesiredPosition, bool bl
 
 				if (blnMoveIsPossible == true) { intPieceIndex = intIndex; }
 			}
+		}
+	}
+	// if not a pawn, and only the row is given
+	else if (intPieceFile == 0 && intPieceRow != 0)
+	{
+		int intStartIndex = 0;
+
+		if (intPieceRow == 8) { intStartIndex = 0; }
+		else if (intPieceRow == 7) { intStartIndex = 8; }
+		else if (intPieceRow == 6) { intStartIndex = 16; }
+		else if (intPieceRow == 5) { intStartIndex = 24; }
+		else if (intPieceRow == 4) { intStartIndex = 32; }
+		else if (intPieceRow == 3) { intStartIndex = 40; }
+		else if (intPieceRow == 2) { intStartIndex = 48; }
+		else if (intPieceRow == 1) { intStartIndex = 56; }
+
+		for (intIndex = intStartIndex; intIndex < intStartIndex + 8; intIndex++)
+		{
+			if (m_vecPositions[intIndex].ReturnNotationName() == intPieceAsciiValue &&
+				m_vecPositions[intIndex].ReturnPieceColor() == blnWhiteOrBlackTurn)
+			{
+				// first, check to see if another piece of same type has already been verified
+				// during this For loop to make the move.
+				if (blnMoveIsPossible == true &&
+					m_vecPositions[intIndex].CheckIfValidMove(intIndex, intDesiredPosition, blnWhiteOrBlackTurn) == true)
+				{
+					intPieceIndex = -2; break; // -2 represents that 2 or more pieces can make the move
+				}
+
+				// check to see if it can make the move
+				blnMoveIsPossible = m_vecPositions[intIndex].CheckIfValidMove(intIndex, intDesiredPosition, blnWhiteOrBlackTurn);
+
+				if (blnMoveIsPossible == true) { intPieceIndex = intIndex; }
+			}
+		}
+	}
+	// if not a pawn, and both row and file are given
+	else if (intPieceFile != 0 && intPieceRow != 0)
+	{
+		intIndex = GetPositionIndex(intPieceFile, intPieceRow);
+
+		if (m_vecPositions[intIndex].ReturnNotationName() == intPieceAsciiValue &&
+			m_vecPositions[intIndex].ReturnPieceColor() == blnWhiteOrBlackTurn)
+		{
+			// check to see if it can make the move
+			blnMoveIsPossible = m_vecPositions[intIndex].CheckIfValidMove(intIndex, intDesiredPosition, blnWhiteOrBlackTurn);
+
+			if (blnMoveIsPossible == true) { intPieceIndex = intIndex; }
 		}
 	}
 
@@ -666,35 +742,40 @@ bool Board::CheckMovePath(int intPieceStartIndex, int intDestinationIndex)
 
 	intStartToDestinationDifference = intPieceStartIndex - intDestinationIndex;
 
-	// checks for left-to-right movement
-	if (intStartToDestinationDifference >= -7 && intStartToDestinationDifference <= 7)
+	// only need to check the move path if moving piece is not a knight
+	if (m_vecPositions[intPieceStartIndex].ReturnNotationName() != 'N')
 	{
-		intMoveIncrement = 1;
-		blnMovePathIsClear = true;
-	}
-
-	// checks for up-and-down and diagonal movement (finds the move increment for the board array)
-	if (intStartToDestinationDifference % 7 == 0) { intMoveIncrement = 7; blnMovePathIsClear = true; } // northeast/southwest
-	else if (intStartToDestinationDifference % 9 == 0) { intMoveIncrement = 9; blnMovePathIsClear = true; } // northwest/southeast
-	else if (intStartToDestinationDifference % 8 == 0) { intMoveIncrement = 8; blnMovePathIsClear = true; } // up/down
-
-	// continue if movement type check has passed
-	if (blnMovePathIsClear == true)
-	{
-		// correct the increment to negative if needed, to ensure full correct direction
-		if (intStartToDestinationDifference > 0) { intMoveIncrement = -intMoveIncrement; }
-
-		// increment through each move towards the destination, and check for a piece on each square
-		for (intIndex = intPieceStartIndex + intMoveIncrement; intIndex != intDestinationIndex; intIndex += intMoveIncrement)
+		// checks for left-to-right movement
+		if (intStartToDestinationDifference >= -7 && intStartToDestinationDifference <= 7)
 		{
-			// if the currently iterated square is not clear, then return false
-			if(m_vecPositions[intIndex].ReturnNotationName() != '-')
+			intMoveIncrement = 1;
+			blnMovePathIsClear = true;
+		}
+
+		// checks for up-and-down and diagonal movement (finds the move increment for the board array)
+		if (intStartToDestinationDifference % 7 == 0) { intMoveIncrement = 7; blnMovePathIsClear = true; } // northeast/southwest
+		else if (intStartToDestinationDifference % 9 == 0) { intMoveIncrement = 9; blnMovePathIsClear = true; } // northwest/southeast
+		else if (intStartToDestinationDifference % 8 == 0) { intMoveIncrement = 8; blnMovePathIsClear = true; } // up/down
+
+		// continue if movement type check has passed
+		if (blnMovePathIsClear == true)
+		{
+			// correct the increment to negative if needed, to ensure full correct direction
+			if (intStartToDestinationDifference > 0) { intMoveIncrement = -intMoveIncrement; }
+
+			// increment through each move towards the destination, and check for a piece on each square
+			for (intIndex = intPieceStartIndex + intMoveIncrement; intIndex != intDestinationIndex; intIndex += intMoveIncrement)
 			{
-				blnMovePathIsClear = false;
-				break;
+				// if the currently iterated square is not clear, then return false
+				if (m_vecPositions[intIndex].ReturnNotationName() != '-')
+				{
+					blnMovePathIsClear = false;
+					break;
+				}
 			}
 		}
 	}
+	else { blnMovePathIsClear = true; }
 
 	return blnMovePathIsClear;
 }
@@ -942,152 +1023,154 @@ bool Board::IsKingInCheck(bool blnWhiteOrBlackTurn, int intPosition)
 
 
 	// check for attacking Knights ---------------------------------------------------------------------------------------------
+	if (IsInCheck == false) // only check for check-by-knight if checks for all other types of pieces turns up false
+	{
+		// Here are the 'L' patterns that should be seen as emitting from the center of the graph. Consider the king's position to be the center,
+		// and a potential knight to be at the end of each 'L' pattern.
+		//  
+		//   A_____B
+		//  H	|   C
+		//  |___|___|
+		//  |	|   |
+		//  G __|__ D
+		//    F   E
 
-	// Here are the 'L' patterns that should be seen as emitting from the center of the graph. Consider the king's position to be the center,
-	// and a potential knight to be at the end of each 'L' pattern.
-	//  
-	//   A_____B
-	//  H	|   C
-	//  |___|___|
-	//  |	|   |
-	//  G __|__ D
-	//    F   E
+		intIndex = intPosition;
+		int intA = intPosition - 17;
+		int intB = intPosition - 15;
+		int intC = intPosition - 6;
+		int intD = intPosition + 10;
+		int intE = intPosition + 17;
+		int intF = intPosition + 15;
+		int intG = intPosition + 6;
+		int intH = intPosition - 10;
 
-	intIndex = intPosition;
-	int intA = intPosition - 17;
-	int intB = intPosition - 15;
-	int intC = intPosition - 6;
-	int intD = intPosition + 10;
-	int intE = intPosition + 17;
-	int intF = intPosition + 15;
-	int intG = intPosition + 6;
-	int intH = intPosition - 10;
-	
-	if (intPosition == 0) // if starting in file 'a' and row 8
-	{
-		int aintDirections[2] = { intD, intE };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 2, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition == 8)// if starting in file 'a' and row 7
-	{
-		int aintDirections[3] = { intD, intE, intC };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition == 48) // if starting in file 'a' and row 2
-	{
-		int aintDirections[3] = { intB, intC, intD };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition == 56) // if starting in file 'a' and row 1
-	{
-		int aintDirections[2] = { intB, intC };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 2, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition == 1) // if starting in file 'b' and row 8
-	{
-		int aintDirections[3] = { intE, intF, intD };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition == 9) // if starting in file 'b' and row 7
-	{
-		int aintDirections[4] = { intE, intF, intD, intC };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
-	}	
-	else if (intPosition == 49) // if starting in file 'b' and row 2
-	{
-		int aintDirections[4] = { intA, intB, intD, intC };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition == 57) // if starting in file 'b' and row 1
-	{
-		int aintDirections[3] = { intA, intB, intC };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition == 6) // if starting in file 'g' and row 8
-	{
-		int aintDirections[3] = { intE, intF, intG };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition == 14) // if starting in file 'g' and row 7
-	{
-		int aintDirections[4] = { intE, intF, intG, intH };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition == 54) // if starting in file 'g' and row 2
-	{
-		int aintDirections[4] = { intA, intB, intG, intH };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition == 62) // if starting in file 'g' and row 1
-	{
-		int aintDirections[3] = { intA, intB, intH };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition == 7) // if starting in file 'h' and row 8
-	{
-		int aintDirections[2] = { intG, intF };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 2, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition == 15) // if starting in file 'h' and row 7
-	{
-		int aintDirections[3] = { intG, intF, intH };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition == 55) // if starting in file 'h' and row 2
-	{
-		int aintDirections[3] = { intG, intA, intH };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition == 63) // if starting in file 'h' and row 1
-	{
-		int aintDirections[2] = { intH, intA };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 2, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition >= 0 && intPosition <= 7) // if starting in row 8, and not limited by right or left edge
-	{
-		int aintDirections[4] = { intG, intD, intF, intE };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition >= 8 && intPosition <= 15) // if starting in row 7, and not limited by right or left edge
-	{
-		int aintDirections[6] = { intG, intD, intF, intE, intC, intH };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 6, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition >= 48 && intPosition <= 55) // if starting in row 2, and not limited by right or left edge
-	{
-		int aintDirections[6] = { intC, intH, intB, intA, intG, (intPosition + 10) };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 6, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition >= 56 && intPosition <= 63) // if starting in row 1, and not limited by right or left edge
-	{
-		int aintDirections[4] = { intC, intH, intB, intA };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
-	}
-	else if (intPosition % 8 == 0) // if starting in file 'a' and not limited by top or bottom edge
-	{
-		int aintDirections[4] = { intE, intB, intC, intD };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
-	}
-	else if ((intPosition - 1) % 8 == 0) // if starting in file 'b' and not limited by top or bottom edge
-	{
-		int aintDirections[6] = { intE, intB, intC, intD, intA, intF };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 6, blnWhiteOrBlackTurn);
-	}
-	else if ((intPosition - 6) % 8 == 0) // if starting in file 'g' and not limited by top or bottom edge
-	{
-		int aintDirections[6] = { intE, intB, intG, intH, intA, intF };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 6, blnWhiteOrBlackTurn);
-	}
-	else if ((intPosition - 7) % 8 == 0) // if starting in file 'h' and not limited by top or bottom edge
-	{
-		int aintDirections[4] = { intA, intF, intG, intH };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
-	}
-	else
-	{
-		// As default, from the king's point of view, set all 8 squares for checking for a knight's check.
-		int aintDirections[8] = { intA, intB, intC, intD, intE, intF, intG, intH };
-		IsInCheck = CheckKnightPatternArray(aintDirections, 8, blnWhiteOrBlackTurn);
+		if (intPosition == 0) // if starting in file 'a' and row 8
+		{
+			int aintDirections[2] = { intD, intE };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 2, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition == 8)// if starting in file 'a' and row 7
+		{
+			int aintDirections[3] = { intD, intE, intC };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition == 48) // if starting in file 'a' and row 2
+		{
+			int aintDirections[3] = { intB, intC, intD };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition == 56) // if starting in file 'a' and row 1
+		{
+			int aintDirections[2] = { intB, intC };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 2, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition == 1) // if starting in file 'b' and row 8
+		{
+			int aintDirections[3] = { intE, intF, intD };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition == 9) // if starting in file 'b' and row 7
+		{
+			int aintDirections[4] = { intE, intF, intD, intC };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition == 49) // if starting in file 'b' and row 2
+		{
+			int aintDirections[4] = { intA, intB, intD, intC };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition == 57) // if starting in file 'b' and row 1
+		{
+			int aintDirections[3] = { intA, intB, intC };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition == 6) // if starting in file 'g' and row 8
+		{
+			int aintDirections[3] = { intE, intF, intG };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition == 14) // if starting in file 'g' and row 7
+		{
+			int aintDirections[4] = { intE, intF, intG, intH };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition == 54) // if starting in file 'g' and row 2
+		{
+			int aintDirections[4] = { intA, intB, intG, intH };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition == 62) // if starting in file 'g' and row 1
+		{
+			int aintDirections[3] = { intA, intB, intH };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition == 7) // if starting in file 'h' and row 8
+		{
+			int aintDirections[2] = { intG, intF };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 2, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition == 15) // if starting in file 'h' and row 7
+		{
+			int aintDirections[3] = { intG, intF, intH };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition == 55) // if starting in file 'h' and row 2
+		{
+			int aintDirections[3] = { intG, intA, intH };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 3, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition == 63) // if starting in file 'h' and row 1
+		{
+			int aintDirections[2] = { intH, intA };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 2, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition >= 0 && intPosition <= 7) // if starting in row 8, and not limited by right or left edge
+		{
+			int aintDirections[4] = { intG, intD, intF, intE };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition >= 8 && intPosition <= 15) // if starting in row 7, and not limited by right or left edge
+		{
+			int aintDirections[6] = { intG, intD, intF, intE, intC, intH };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 6, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition >= 48 && intPosition <= 55) // if starting in row 2, and not limited by right or left edge
+		{
+			int aintDirections[6] = { intC, intH, intB, intA, intG, (intPosition + 10) };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 6, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition >= 56 && intPosition <= 63) // if starting in row 1, and not limited by right or left edge
+		{
+			int aintDirections[4] = { intC, intH, intB, intA };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
+		}
+		else if (intPosition % 8 == 0) // if starting in file 'a' and not limited by top or bottom edge
+		{
+			int aintDirections[4] = { intE, intB, intC, intD };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
+		}
+		else if ((intPosition - 1) % 8 == 0) // if starting in file 'b' and not limited by top or bottom edge
+		{
+			int aintDirections[6] = { intE, intB, intC, intD, intA, intF };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 6, blnWhiteOrBlackTurn);
+		}
+		else if ((intPosition - 6) % 8 == 0) // if starting in file 'g' and not limited by top or bottom edge
+		{
+			int aintDirections[6] = { intE, intB, intG, intH, intA, intF };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 6, blnWhiteOrBlackTurn);
+		}
+		else if ((intPosition - 7) % 8 == 0) // if starting in file 'h' and not limited by top or bottom edge
+		{
+			int aintDirections[4] = { intA, intF, intG, intH };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 4, blnWhiteOrBlackTurn);
+		}
+		else
+		{
+			// As default, from the king's point of view, set all 8 squares for checking for a knight's check.
+			int aintDirections[8] = { intA, intB, intC, intD, intE, intF, intG, intH };
+			IsInCheck = CheckKnightPatternArray(aintDirections, 8, blnWhiteOrBlackTurn);
+		}
 	}
 
 	return IsInCheck;

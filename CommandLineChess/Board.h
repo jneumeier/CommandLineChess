@@ -94,7 +94,7 @@ public:
 	void SwapSquares(int intPiece1, int intPiece2);
 	void CapturePiece(int intPiece1, int intPiece2);
 	int GetPositionIndex(int intColumn, int intRow);
-	int GetPieceIndex(int intPieceAsciiValue, int intDesiredPosition, bool blnWhiteOrBlackTurn);
+	int GetPieceIndex(int intPieceAsciiValue, int intPieceFile, int intPieceRow, int intDesiredPosition, bool blnWhiteOrBlackTurn);
 	char GetNotationName(int intSquareIndex);
 	bool GetPieceColor(int intSquareIndex);
 	bool CheckMovePath(int intPieceStartIndex, int intDestinationIndex);
