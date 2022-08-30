@@ -27,7 +27,11 @@ using namespace std;
 // --------------------------------------------------------------------------------
 // Initializers
 // --------------------------------------------------------------------------------
-void TurnDisplay(Board* clsBoard, bool blnWhiteOrBlackTurn, string* strErrorMessageToUser, string* strMessageToUser);
+void DisplayMenu(bool blnGameRunning);
+void DisplayOptions(string* strBoardStyle);
+void DisplayInfo();
+string GetCommand();
+void TurnDisplay(Board* clsBoard, bool blnWhiteOrBlackTurn, string* strErrorMessageToUser, string* strMessageToUser, string strBoardStyle);
 string GetMove();
 bool ValidateEntry(string strMove);
 bool MakeMove(string strMove, bool blnWhiteOrBlackTurn, Board *clsBoard, string *strMessageToUser);
@@ -49,30 +53,193 @@ int main()
 	// define variables
 	bool blnWhiteOrBlackTurn = true; // true is White, false is Black
 	bool blnMoveSuccessful = false;
+	bool blnGameRunning = false;
 	string strMove = "";
 	string strErrorMessageToUser = "";
 	string strMessageToUser = "";
+	string strView = "menu";
+	string strCommand = "";
+	string strBoardStyle = "small";
 
-	Board clsBoard; // initialize the chess board. This also initializes all Pieces.
+	Board clsNewBoard;
+	Board clsBoard = clsNewBoard; // initialize the chess board. This also initializes all Pieces.
 	Board clsBoardCopy;
 
 	// start game loop. Exits loop when break is triggered
 	while(1)
 	{
-		clsBoardCopy = clsBoard; // copy board so reversion is possible within current move (used for HandleCheckStatus)
-		TurnDisplay(&clsBoard, blnWhiteOrBlackTurn, &strErrorMessageToUser, &strMessageToUser); // run the current turn's display
-		strMove = GetMove(); // get the move from the user
-		if (strMove == "exit") { cout << "Exiting...Bye!" << endl; break; } // exit the game
-		blnMoveSuccessful = MakeMove(strMove, blnWhiteOrBlackTurn, &clsBoard, &strErrorMessageToUser); // try to make the entered move
-		blnMoveSuccessful = HandleCheckStatus(&clsBoard, &clsBoardCopy, blnWhiteOrBlackTurn, &strErrorMessageToUser, &strMessageToUser, blnMoveSuccessful, strMove);
+		if (strView == "menu")
+		{
+			DisplayMenu(blnGameRunning);
+			strCommand = GetCommand();
 
-		// Change turns if the move was successful, and, change message back to ""
-		if (blnMoveSuccessful == true)
-		{ 
-			blnWhiteOrBlackTurn = !blnWhiteOrBlackTurn;
-			strErrorMessageToUser = "";
+			if(strCommand == "exit") { cout << "Exiting...Bye!" << endl; break; } // exit the game
+			else if (strCommand == "new")
+			{
+				strView = strCommand;
+				blnGameRunning = true;
+				clsBoard = clsNewBoard; // reset the game board
+				blnWhiteOrBlackTurn = true;
+			}
+			else if (strCommand == "continue")
+			{
+				strView = strCommand;
+			}
+			else if (strCommand == "options")
+			{
+				strView = strCommand;
+			}
+			else if (strCommand == "info")
+			{
+				strView = strCommand;
+			}
+			else { strView = "menu"; }
 		}
+		else if (strView == "options")
+		{
+			DisplayOptions(&strBoardStyle);
+			strCommand = GetCommand();
+
+			if (strCommand == "exit") { cout << "Exiting...Bye!" << endl; break; } // exit the game
+			else if (strCommand == "back")
+			{
+				strView = "menu";
+			}
+			else if (strCommand == "small" || strCommand == "large")
+			{
+				strBoardStyle = strCommand;
+			}
+			else { strView = "options"; }
+		}
+		else if (strView == "info")
+		{
+			DisplayInfo();
+			strCommand = GetCommand();
+
+			if (strCommand == "exit") { cout << "Exiting...Bye!" << endl; break; } // exit the game
+			else if (strCommand == "back")
+			{
+				strView = "menu";
+			}
+			else { strView = "info"; }
+		}
+		else
+		{
+			clsBoardCopy = clsBoard; // copy board so reversion is possible within current move (used for HandleCheckStatus)
+			TurnDisplay(&clsBoard, blnWhiteOrBlackTurn, &strErrorMessageToUser, &strMessageToUser, strBoardStyle); // run the current turn's display
+			strMove = "";
+			strMove = GetMove(); // get the move from the user
+
+			if (strMove == "exit") { cout << "Exiting...Bye!" << endl; break; } // exit the game
+			if (strMove == "menu") { strView = "menu"; continue; }
+
+			blnMoveSuccessful = MakeMove(strMove, blnWhiteOrBlackTurn, &clsBoard, &strErrorMessageToUser); // try to make the entered move
+			blnMoveSuccessful = HandleCheckStatus(&clsBoard, &clsBoardCopy, blnWhiteOrBlackTurn, &strErrorMessageToUser, &strMessageToUser, blnMoveSuccessful, strMove);
+
+			// Change turns if the move was successful, and, change message back to ""
+			if (blnMoveSuccessful == true)
+			{
+				blnWhiteOrBlackTurn = !blnWhiteOrBlackTurn;
+				strErrorMessageToUser = "";
+			}
+		}
+		
 	}
+}
+
+
+
+// --------------------------------------------------------------------------------
+// Name: DisplayMenu()
+// Abstract: Displays the main menu
+// --------------------------------------------------------------------------------
+void DisplayMenu(bool blnGameRunning)
+{
+	cout << "*************************************************************************" << endl << endl;
+	if (!blnGameRunning) {
+	cout << "                       Welcome to Command Line Chess!                    " << endl << endl;}
+	cout << "                                 Main Menu                               " << endl << endl;
+	cout << "                                 New Game                                " << endl;
+	if(blnGameRunning) {
+	cout << "                                 Continue                                " << endl; }
+	cout << "                                 Options                                 " << endl;
+	cout << "                                 Info                                    " << endl;
+	cout << "                                 Exit                                    " << endl << endl << endl;
+	cout << "*************************************************************************" << endl << endl;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: DisplayOptions()
+// Abstract: Displays the options menu
+// --------------------------------------------------------------------------------
+void DisplayOptions(string* strBoardStyle)
+{
+	cout << "*************************************************************************" << endl << endl;
+	cout << "                                 Options                                 " << endl << endl;
+	cout << "                            ----Board Size----                           " << endl;
+	if (*strBoardStyle == "small") {
+	cout << "                           > small     large                             " << endl << endl;}
+	else if (*strBoardStyle == "large") {
+	cout << "                             small   > large                             " << endl << endl;}
+	cout << "                                  Back                                   " << endl << endl << endl;
+	cout << "*************************************************************************" << endl << endl;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: DisplayInfo()
+// Abstract: Displays the options menu
+// --------------------------------------------------------------------------------
+void DisplayInfo()
+{
+	cout << "*************************************************************************" << endl << endl;
+	cout << "                                  Info                                   " << endl << endl;
+	cout << "                      Copyright 2022 by John Neumeier                    " << endl << endl;
+	cout << "                                  Back                                   " << endl << endl << endl;
+	cout << "*************************************************************************" << endl << endl;
+}
+
+
+// --------------------------------------------------------------------------------
+// Name: GetCommand
+// Abstract: Gets the program command from the user
+// --------------------------------------------------------------------------------
+string GetCommand()
+{
+	string strCommand = "";
+	string strReturnCommand = "";
+	bool blnValidMove = false;
+	bool blnValidEntry = false;
+	int intIndex = 0;
+	int intStringLength = 0;
+
+	do
+	{
+		// prompt the user for input
+		cout << ">> Enter a selection: " << endl;
+
+		// get user input
+		cin >> strCommand;
+
+		// make sure all letters are lowercase before evaluating
+		intStringLength = strCommand.length();
+		string strCommandLowerCase = strCommand; // initialize before we change the letters all to lower case
+		for (intIndex = 0; intIndex < intStringLength; intIndex++)
+		{
+			if (strCommand[intIndex] >= 65 && strCommand[intIndex] <= 90) { strCommandLowerCase[intIndex] = strCommand[intIndex] + 32; }
+			else { strCommandLowerCase[intIndex] = strCommand[intIndex]; }
+		}
+
+		// check for special commands first
+		if (strCommandLowerCase == "new" || strCommandLowerCase == "continue" || strCommandLowerCase == "options" || strCommandLowerCase == "exit"
+			|| strCommandLowerCase == "small" || strCommandLowerCase == "large" || strCommandLowerCase == "back" || strCommandLowerCase == "info")
+		{
+			strReturnCommand = strCommandLowerCase;
+		}
+	} while (strReturnCommand == "");
+
+	return strReturnCommand;
 }
 
 
@@ -81,10 +248,11 @@ int main()
 // Abstract: Shows all display needed for the current player's turn--the board
 //			 and all messages that need to be shown
 // --------------------------------------------------------------------------------
-void TurnDisplay(Board* clsBoard, bool blnWhiteOrBlackTurn, string* strErrorMessageToUser, string* strMessageToUser)
+void TurnDisplay(Board* clsBoard, bool blnWhiteOrBlackTurn, string* strErrorMessageToUser, string* strMessageToUser, string strBoardStyle)
 {
-	//(*clsBoard).DisplayBoard_Simple(blnWhiteOrBlackTurn); // print the board
-	(*clsBoard).DisplayBoard_Ascii(blnWhiteOrBlackTurn); // print the board
+	// print the board
+	if (strBoardStyle == "small") { (*clsBoard).DisplayBoard_Simple(blnWhiteOrBlackTurn); }
+	else if (strBoardStyle == "large") { (*clsBoard).DisplayBoard_Ascii(blnWhiteOrBlackTurn); }
 	
 
 	if (*strErrorMessageToUser != "")
@@ -120,7 +288,7 @@ string GetMove()
 	do
 	{
 		// prompt the user for input
-		cout << ">> Enter a move: " << endl;
+		cout << ">> Enter a move. (Type \"menu\" for Main Menu): " << endl;
 
 		// get user input
 		cin >> strMove;
@@ -151,7 +319,8 @@ bool ValidateEntry(string strMove)
 
 	// check for special moves first
 	if (strMove == "0-0-0" || strMove == "0-0" || strMove == "O-O-O" || strMove == "O-O" ||
-		strMove == "(=)" || strMove == "exit")
+		strMove == "(=)" || strMove == "exit" || strMove == "undo" || strMove == "u" ||
+		strMove == "menu" || strMove == "Menu")
 	{
 		blnValidEntry = true;
 	}

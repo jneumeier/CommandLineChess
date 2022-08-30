@@ -5,7 +5,7 @@ Command Line Chess - Readme
 Written by: 		John Neumeier
 Language:		C++
 Started:		March 2022
-Current Version:	v0.1
+Current Version:	v0.12
 
 
 *********************
@@ -17,7 +17,7 @@ How To Run:
 About This Program:
 *********************
 
-This is a command-line implementation of chess. Pieces are represented by upper and lower-case letters, representing white and black pieces, respectively. This program uses standard algebraic notation exclusively, in order to make moves. It is currently a two-human player game. I would like to start implementing a computer opponent after all game mechanics and user interface design has been completed.
+This is a command-line implementation of chess that uses standard algebraic notation in order to make moves. It is currently a two-human player game. I would like to start implementing a computer opponent after all game mechanics and user interface design has been completed.
 
 The game currently has core mechanics in place, and pieces can be moved and captured, all while adhering to individual piece moving rules.
 
@@ -29,6 +29,5 @@ To Implement:
 - game concept of checkmate
 - vectors to hold captured pieces
 - display captured pieces
-- Main Menu
 - Undo
 - Ability to load/save .pgn files
