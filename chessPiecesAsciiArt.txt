@@ -86,6 +86,3 @@
 Copyright: John Neumeier - 2022
 
 These pieces are 7 chars wide and 6 chars tall. This includes whitespace. Each piece is separated by an empty line.
-
-I will have a function for each piece, and each will return a multi-dimensional array of chars. Each array within the multi-dimensional array represents each of the 6 lines of a piece. Each individual function will have the text file reading start-line hard-coded into it, depending on which piece the function represents.
-

@@ -3,6 +3,8 @@
 // Abstract: Class method definitions
 // --------------------------------------------------------------------------------
 
+
+
 // --------------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------------
@@ -20,6 +22,7 @@ Board::Board()
 {
 	SetStartingPosition(); // set the board to begin
 }
+
 
 
 // --------------------------------------------------------------------------------
@@ -84,6 +87,8 @@ void Board::SetStartingPosition()
 	m_vecPositions.push_back(WhiteKnight2); m_vecPositions.push_back(WhiteRook2);
 }
 
+
+
 // --------------------------------------------------------------------------------
 // Name: GetAscii_Pawn_Clear
 // Abstract: Returns pointer to array of strings representing each line of the piece.
@@ -101,6 +106,7 @@ string* Board::GetAscii_Pawn_Clear()
 
 	return astrPawn_Clear;
 }
+
 
 
 // --------------------------------------------------------------------------------
@@ -122,6 +128,7 @@ string* Board::GetAscii_Pawn_Filled()
 }
 
 
+
 // --------------------------------------------------------------------------------
 // Name: GetAscii_Rook_Clear
 // Abstract: Returns pointer to array of strings representing each line of the piece.
@@ -139,6 +146,7 @@ string* Board::GetAscii_Rook_Clear()
 
 	return astrRook_Clear;
 }
+
 
 
 // --------------------------------------------------------------------------------
@@ -160,6 +168,7 @@ string* Board::GetAscii_Rook_Filled()
 }
 
 
+
 // --------------------------------------------------------------------------------
 // Name: GetAscii_Knight_Clear
 // Abstract: Returns pointer to array of strings representing each line of the piece.
@@ -177,6 +186,7 @@ string* Board::GetAscii_Knight_Clear()
 
 	return astrKnight_Clear;
 }
+
 
 
 // --------------------------------------------------------------------------------
@@ -198,6 +208,7 @@ string* Board::GetAscii_Knight_Filled()
 }
 
 
+
 // --------------------------------------------------------------------------------
 // Name: GetAscii_Bishop_Clear
 // Abstract: Returns pointer to array of strings representing each line of the piece.
@@ -215,6 +226,7 @@ string* Board::GetAscii_Bishop_Clear()
 
 	return astrBishop_Clear;
 }
+
 
 
 // --------------------------------------------------------------------------------
@@ -236,6 +248,7 @@ string* Board::GetAscii_Bishop_Filled()
 }
 
 
+
 // --------------------------------------------------------------------------------
 // Name: GetAscii_Queen_Clear
 // Abstract: Returns pointer to array of strings representing each line of the piece.
@@ -253,6 +266,7 @@ string* Board::GetAscii_Queen_Clear()
 
 	return astrQueen_Clear;
 }
+
 
 
 // --------------------------------------------------------------------------------
@@ -274,6 +288,7 @@ string* Board::GetAscii_Queen_Filled()
 }
 
 
+
 // --------------------------------------------------------------------------------
 // Name: GetAscii_King_Clear
 // Abstract: Returns pointer to array of strings representing each line of the piece.
@@ -291,6 +306,7 @@ string* Board::GetAscii_King_Clear()
 
 	return astrKing_Clear;
 }
+
 
 
 // --------------------------------------------------------------------------------
@@ -312,6 +328,7 @@ string* Board::GetAscii_King_Filled()
 }
 
 
+
 // --------------------------------------------------------------------------------
 // Name: GetAscii_Empty_Square
 // Abstract: Returns pointer to array of strings representing each line of the empty square.
@@ -331,6 +348,7 @@ string* Board::GetAscii_Empty_Square()
 }
 
 
+
 // --------------------------------------------------------------------------------
 // Name: DisplayBoard_Simple()
 // Abstract: Prints the current board to the user. Prints the array Positions, in 
@@ -344,6 +362,8 @@ void Board::DisplayBoard_Simple(bool blnWhiteOrBlackTurn)
 	int aintRowNames[] = { 8, 7, 6, 5, 4, 3, 2, 1 };
 	char achrColumnNames[] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
 	char chrPiece = 0;
+
+	cout << endl << endl;
 
 	// print the board
 	for (intIndex = 0; intIndex < 64; intIndex++)
@@ -383,6 +403,7 @@ void Board::DisplayBoard_Simple(bool blnWhiteOrBlackTurn)
 	else { strCurrentColorTurn = "Black"; }
 	cout << endl << strCurrentColorTurn << "'s turn to move." << endl;
 }
+
 
 
 // --------------------------------------------------------------------------------
@@ -431,6 +452,7 @@ void Board::DisplayBoard_Ascii(bool blnWhiteOrBlackTurn)
 	else { strCurrentColorTurn = "Black"; }
 	cout << endl << strCurrentColorTurn << "'s turn to move." << endl;
 }
+
 
 
 // --------------------------------------------------------------------------------
@@ -507,6 +529,8 @@ void Board::SwapSquares(int intPiece1, int intPiece2)
 	m_vecPositions[intPiece2].IncrementMoveCount();
 }
 
+
+
 // --------------------------------------------------------------------------------
 // Name: CapturePiece()
 // Abstract: Swaps the contents of two squares (two indecies of the Pieces vector)
@@ -520,6 +544,8 @@ void Board::CapturePiece(int intPiece1, int intPiece2)
 	m_vecPositions[intPiece1] = EmptySquare; // wipe the starting square to a hypen, because the captured piece will be here
 	m_vecPositions[intPiece2].IncrementMoveCount();
 }
+
+
 
 // --------------------------------------------------------------------------------
 // Name: GetPositionIndex()
@@ -562,6 +588,8 @@ int Board::GetPositionIndex(int intColumn, int intRow)
 
 	return intIndexPosition;
 }
+
+
 
 // --------------------------------------------------------------------------------
 // Name: GetPieceIndex()
@@ -700,6 +728,8 @@ int Board::GetPieceIndex(int intPieceAsciiValue, int intPieceFile, int intPieceR
 	return intPieceIndex;
 }
 
+
+
 // --------------------------------------------------------------------------------
 // Name: GetNotationName()
 // Abstract: Retrieves the notation name of the piece at the given square on the
@@ -714,6 +744,8 @@ char Board::GetNotationName(int intSquareIndex)
 	return chrNotationName;
 }
 
+
+
 // --------------------------------------------------------------------------------
 // Name: GetPieceColor()
 // Abstract: Retrieves the color of the piece at the given square on the board.
@@ -726,6 +758,8 @@ bool Board::GetPieceColor(int intSquareIndex)
 
 	return blnWhiteOrBlack;
 }
+
+
 
 // --------------------------------------------------------------------------------
 // Name: CheckMovePath()
@@ -779,6 +813,7 @@ bool Board::CheckMovePath(int intPieceStartIndex, int intDestinationIndex)
 
 	return blnMovePathIsClear;
 }
+
 
 
 // --------------------------------------------------------------------------------

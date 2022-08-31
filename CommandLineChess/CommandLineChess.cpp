@@ -5,10 +5,6 @@
 // --------------------------------------------------------------------------------
 
 
-// To implement:
-//
-// piece obstructions when making moves
-
 
 // --------------------------------------------------------------------------------
 // Includes
@@ -24,9 +20,11 @@
 using namespace std;
 
 
+
 // --------------------------------------------------------------------------------
 // Initializers
 // --------------------------------------------------------------------------------
+void Menus(string* strView, bool *blnGameRunning, Board* clsBoard, Board* clsNewBoard, bool* blnWhiteOrBlackTurn, string* strBoardStyle);
 void DisplayMenu(bool blnGameRunning);
 void DisplayOptions(string* strBoardStyle);
 void DisplayInfo();
@@ -44,9 +42,10 @@ bool MovePiece_Capture(char chrPieceMoving, char chrSquareLetter_Dest, char chrS
 bool MovePiece_Castle(bool blnKingside, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strErrorMessageToUser);
 
 
+
 // --------------------------------------------------------------------------------
 // Name: main
-// Abstract: Demonstrates basic control over stacked and queued lists
+// Abstract: The hub of our chess application!!!
 // --------------------------------------------------------------------------------
 int main()
 {
@@ -58,73 +57,23 @@ int main()
 	string strErrorMessageToUser = "";
 	string strMessageToUser = "";
 	string strView = "menu";
-	string strCommand = "";
 	string strBoardStyle = "small";
 
+	// initialize the chess board (and some handy copies of it)
 	Board clsNewBoard;
-	Board clsBoard = clsNewBoard; // initialize the chess board. This also initializes all Pieces.
+	Board clsBoard;
 	Board clsBoardCopy;
 
-	// start game loop. Exits loop when break is triggered
+	// start game loop. Exits loop when break is called
 	while(1)
 	{
-		if (strView == "menu")
-		{
-			DisplayMenu(blnGameRunning);
-			strCommand = GetCommand();
+		// always check if strView is telling us to be in a different "view", or menu.
+		Menus(&strView, &blnGameRunning, &clsBoard, &clsNewBoard, &blnWhiteOrBlackTurn, &strBoardStyle);
 
-			if(strCommand == "exit") { cout << "Exiting...Bye!" << endl; break; } // exit the game
-			else if (strCommand == "new")
-			{
-				strView = strCommand;
-				blnGameRunning = true;
-				clsBoard = clsNewBoard; // reset the game board
-				blnWhiteOrBlackTurn = true;
-			}
-			else if (strCommand == "continue")
-			{
-				strView = strCommand;
-			}
-			else if (strCommand == "options")
-			{
-				strView = strCommand;
-			}
-			else if (strCommand == "info")
-			{
-				strView = strCommand;
-			}
-			else { strView = "menu"; }
-		}
-		else if (strView == "options")
+		// Game Display Area
+		if (strView == "new" || strView == "continue")
 		{
-			DisplayOptions(&strBoardStyle);
-			strCommand = GetCommand();
-
-			if (strCommand == "exit") { cout << "Exiting...Bye!" << endl; break; } // exit the game
-			else if (strCommand == "back")
-			{
-				strView = "menu";
-			}
-			else if (strCommand == "small" || strCommand == "large")
-			{
-				strBoardStyle = strCommand;
-			}
-			else { strView = "options"; }
-		}
-		else if (strView == "info")
-		{
-			DisplayInfo();
-			strCommand = GetCommand();
-
-			if (strCommand == "exit") { cout << "Exiting...Bye!" << endl; break; } // exit the game
-			else if (strCommand == "back")
-			{
-				strView = "menu";
-			}
-			else { strView = "info"; }
-		}
-		else
-		{
+			blnGameRunning = true;
 			clsBoardCopy = clsBoard; // copy board so reversion is possible within current move (used for HandleCheckStatus)
 			TurnDisplay(&clsBoard, blnWhiteOrBlackTurn, &strErrorMessageToUser, &strMessageToUser, strBoardStyle); // run the current turn's display
 			strMove = "";
@@ -143,7 +92,59 @@ int main()
 				strErrorMessageToUser = "";
 			}
 		}
-		
+		else if (strView == "exit") { cout << "Exiting...Bye!" << endl; break; }
+	}
+}
+
+
+
+// --------------------------------------------------------------------------------
+// Name: Menus()
+// Abstract: Checks the state of strView and calls its corresponding menu to be
+//			 displayed. User input is received via GetCommand(), evaluated,
+//			 and game states are altered if necessary.
+// --------------------------------------------------------------------------------
+void Menus(string *strView, bool *blnGameRunning, Board *clsBoard, Board *clsNewBoard, bool *blnWhiteOrBlackTurn, string *strBoardStyle)
+{
+	string strCommand = "";
+
+	cout << endl;
+
+	if (*strView == "menu")
+	{
+		DisplayMenu(*blnGameRunning);
+		strCommand = GetCommand();
+
+		if (strCommand == "exit") { *strView = strCommand; } // exit the game
+		else if (strCommand == "new")
+		{
+			*strView = strCommand;
+			*clsBoard = *clsNewBoard; // reset the game board
+			*blnWhiteOrBlackTurn = true; // set to white's move
+		}
+		else if (strCommand == "continue") { *strView = strCommand; }
+		else if (strCommand == "options") { *strView = strCommand; }
+		else if (strCommand == "info") { *strView = strCommand; }
+		else { *strView = "menu"; }
+	}
+	else if (*strView == "options")
+	{
+		DisplayOptions(strBoardStyle);
+		strCommand = GetCommand();
+
+		if (strCommand == "exit") { *strView = strCommand; } // exit the game
+		else if (strCommand == "back") { *strView = "menu"; }
+		else if (strCommand == "small" || strCommand == "large") { *strBoardStyle = strCommand; }
+		else { *strView = "options"; }
+	}
+	else if (*strView == "info")
+	{
+		DisplayInfo();
+		strCommand = GetCommand();
+
+		if (strCommand == "exit") { *strView = strCommand; } // exit the game
+		else if (strCommand == "back") { *strView = "menu"; }
+		else { *strView = "info"; }
 	}
 }
 
@@ -169,6 +170,7 @@ void DisplayMenu(bool blnGameRunning)
 }
 
 
+
 // --------------------------------------------------------------------------------
 // Name: DisplayOptions()
 // Abstract: Displays the options menu
@@ -187,9 +189,10 @@ void DisplayOptions(string* strBoardStyle)
 }
 
 
+
 // --------------------------------------------------------------------------------
 // Name: DisplayInfo()
-// Abstract: Displays the options menu
+// Abstract: Displays the info menu
 // --------------------------------------------------------------------------------
 void DisplayInfo()
 {
@@ -199,6 +202,7 @@ void DisplayInfo()
 	cout << "                                  Back                                   " << endl << endl << endl;
 	cout << "*************************************************************************" << endl << endl;
 }
+
 
 
 // --------------------------------------------------------------------------------
@@ -243,6 +247,7 @@ string GetCommand()
 }
 
 
+
 // --------------------------------------------------------------------------------
 // Name: TurnDisplay
 // Abstract: Shows all display needed for the current player's turn--the board
@@ -271,6 +276,7 @@ void TurnDisplay(Board* clsBoard, bool blnWhiteOrBlackTurn, string* strErrorMess
 	int intKingIndex = (*clsBoard).GetKingIndex(blnWhiteOrBlackTurn);
 	if ((*clsBoard).IsKingInCheck(blnWhiteOrBlackTurn, intKingIndex)) { cout << "You are in check." << endl << endl; }
 }
+
 
 
 // --------------------------------------------------------------------------------
@@ -401,6 +407,7 @@ bool MakeMove(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string 
 }
 
 
+
 // --------------------------------------------------------------------------------
 // Name: HandleCheckStatus
 // Abstract: Depending on board state this updates players' check statuses, and
@@ -450,6 +457,7 @@ bool HandleCheckStatus(Board* clsBoard, Board* clsBoardCopy, bool blnWhiteOrBlac
 }
 
 
+
 // --------------------------------------------------------------------------------
 // Name: CheckForPieceAscii
 // Abstract: Returns true if given int is ascii value for B, K, N, Q or R
@@ -469,6 +477,8 @@ bool CheckForPieceAscii(int intPieceAscii)
 	return blnValidLetter;
 }
 
+
+
 // --------------------------------------------------------------------------------
 // Name: CheckForSquareAscii
 // Abstract: Returns true if given int values are ascii values for a thru h and
@@ -487,6 +497,8 @@ bool CheckForSquareAscii(int intColumn, int intRow)
 	
 	return blnValidSquare;
 }
+
+
 
 // --------------------------------------------------------------------------------
 // Name: MakeMove_Pawn
@@ -559,6 +571,8 @@ bool MovePiece_Pawn(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, s
 
 	return blnMoveSuccessful;
 }
+
+
 
 // --------------------------------------------------------------------------------
 // Name: MovePiece
@@ -660,6 +674,8 @@ bool MovePiece(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string
 	return blnMoveSuccessful;
 }
 
+
+
 // --------------------------------------------------------------------------------
 // Name: MovePiece_Capture
 // Abstract: Caputures a piece on the board
@@ -710,6 +726,8 @@ bool MovePiece_Capture(char chrPieceMoving, char chrSquareLetter_Dest, char chrS
 
 	return blnMoveSuccessful;
 }
+
+
 
 // --------------------------------------------------------------------------------
 // Name: MovePiece_Castle
