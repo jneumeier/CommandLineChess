@@ -563,11 +563,13 @@ bool Piece::CheckMovement_Rook(int intCurrentPosition, int intDesiredPosition)
 
 // --------------------------------------------------------------------------------
 // Name: CheckMovement_King()
-// Abstract: Checks if rook move is valid, and returns true if so.
+// Abstract: Checks if king move is valid, and returns true if so.
 // --------------------------------------------------------------------------------
 bool Piece::CheckMovement_King(int intCurrentPosition, int intDesiredPosition)
 {
 	bool blnValidMove = false;
+
+	if (intDesiredPosition < 0) { return false; }
 
 	// right movement
 	if (intDesiredPosition - intCurrentPosition == 1

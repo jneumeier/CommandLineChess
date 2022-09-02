@@ -24,7 +24,7 @@ using namespace std;
 // --------------------------------------------------------------------------------
 // Initializers
 // --------------------------------------------------------------------------------
-void Menus(string* strView, bool *blnGameRunning, Board* clsBoard, Board* clsNewBoard, bool* blnWhiteOrBlackTurn, string* strBoardStyle);
+void Menus(string* strView, bool* blnGameRunning, Board* clsBoard, Board* clsNewBoard, bool* blnWhiteOrBlackTurn, string* strBoardStyle);
 void DisplayMenu(bool blnGameRunning);
 void DisplayOptions(string* strBoardStyle);
 void DisplayInfo();
@@ -32,7 +32,8 @@ string GetCommand();
 void TurnDisplay(Board* clsBoard, bool blnWhiteOrBlackTurn, string* strErrorMessageToUser, string* strMessageToUser, string strBoardStyle);
 string GetMove();
 bool ValidateEntry(string strMove);
-bool MakeMove(string strMove, bool blnWhiteOrBlackTurn, Board *clsBoard, string *strMessageToUser);
+bool MakeMove(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string* strMessageToUser);
+bool HandleCheckmate(Board* clsBoard, Board* clsNewBoard, bool* blnWhiteOrBlackTurn, string* strView, bool* blnGameRunning);
 bool HandleCheckStatus(Board* clsBoard, Board* clsBoardCopy, bool blnWhiteOrBlackTurn, string* strErrorMessageToUser, string* strMessageToUser, bool blnMoveSuccessful, string strMove);
 bool CheckForPieceAscii(int intPieceAscii);
 bool CheckForSquareAscii(int intColumn, int intRow);
@@ -53,6 +54,7 @@ int main()
 	bool blnWhiteOrBlackTurn = true; // true is White, false is Black
 	bool blnMoveSuccessful = false;
 	bool blnGameRunning = false;
+	bool blnCurrentPlayerCheckStatus = false;
 	string strMove = "";
 	string strErrorMessageToUser = "";
 	string strMessageToUser = "";
@@ -65,17 +67,28 @@ int main()
 	Board clsBoardCopy;
 
 	// start game loop. Exits loop when break is called
-	while(1)
+	while (1)
 	{
 		// always check if strView is telling us to be in a different "view", or menu.
 		Menus(&strView, &blnGameRunning, &clsBoard, &clsNewBoard, &blnWhiteOrBlackTurn, &strBoardStyle);
 
-		// Game Display Area
+		// Game Area
 		if (strView == "new" || strView == "continue")
 		{
 			blnGameRunning = true;
 			clsBoardCopy = clsBoard; // copy board so reversion is possible within current move (used for HandleCheckStatus)
 			TurnDisplay(&clsBoard, blnWhiteOrBlackTurn, &strErrorMessageToUser, &strMessageToUser, strBoardStyle); // run the current turn's display
+
+			// assess for checkmate, and ask for input if so:
+			if (blnWhiteOrBlackTurn) { blnCurrentPlayerCheckStatus = clsBoard.m_blnWhiteInCheck; }
+			else { blnCurrentPlayerCheckStatus = clsBoard.m_blnBlackInCheck; }
+
+			if (blnCurrentPlayerCheckStatus == true)
+			{
+				// if current player is in checkmate, strView is set to either "new" or "menu", and we skip the rest of the While loops current iteration
+				if(HandleCheckmate(&clsBoard, &clsNewBoard, &blnWhiteOrBlackTurn, &strView, &blnGameRunning)) { continue; }
+			}
+
 			strMove = "";
 			strMove = GetMove(); // get the move from the user
 
@@ -84,6 +97,7 @@ int main()
 
 			blnMoveSuccessful = MakeMove(strMove, blnWhiteOrBlackTurn, &clsBoard, &strErrorMessageToUser); // try to make the entered move
 			blnMoveSuccessful = HandleCheckStatus(&clsBoard, &clsBoardCopy, blnWhiteOrBlackTurn, &strErrorMessageToUser, &strMessageToUser, blnMoveSuccessful, strMove);
+			
 
 			// Change turns if the move was successful, and, change message back to ""
 			if (blnMoveSuccessful == true)
@@ -404,6 +418,77 @@ bool MakeMove(string strMove, bool blnWhiteOrBlackTurn, Board* clsBoard, string 
 	else { blnMoveSuccessful = MovePiece(strMove, blnWhiteOrBlackTurn, clsBoard, strErrorMessageToUser); }
 
 	return blnMoveSuccessful;
+}
+
+
+
+// --------------------------------------------------------------------------------
+// Name: HandleCheckmate
+// Abstract: Assesses if the given player's king is in checkmate, and if so, resets
+//			 the appropriate variables in order to begin a new game.
+// --------------------------------------------------------------------------------
+bool HandleCheckmate(Board* clsBoard, Board* clsNewBoard, bool* blnWhiteOrBlackTurn, string* strView, bool* blnGameRunning)
+{
+	bool IsInCheckmate = false;
+	int intKingIndex;
+	int intKingsReach[8] = { -9, -8, -7, -1, 1, 7, 8, 9 };
+	vector <int> vecPossibleKingMoves;
+	int intIndex = 0;
+	int intLandingSquare = 0;
+	char chrLandingSquarePiece;
+	bool blnLandingSquareColor;
+	string strCurrentPlayer = "White";
+	string strInput = "";
+
+	if (!*blnWhiteOrBlackTurn) { strCurrentPlayer = "Black"; }
+
+	// Get given player's king position
+	intKingIndex = (*clsBoard).GetKingIndex(*blnWhiteOrBlackTurn);
+
+	// Find what squares in reach of the king are empty.
+	// Use IsKingInCheck for as many times as there are empty squares immediately around the king, using it's king-index parameter as each of those squares.
+	for (intIndex = 0; intIndex < 8; intIndex++)
+	{
+		intLandingSquare = intKingIndex + intKingsReach[intIndex];
+
+		// if the move is possible only in terms of the king's pure ability to move (all other-piece situational restraints aside)
+		if (clsBoard->m_vecPositions[intKingIndex].CheckMovement_King(intKingIndex, intLandingSquare))
+		{
+			chrLandingSquarePiece = clsBoard->m_vecPositions[intLandingSquare].ReturnNotationName();
+			blnLandingSquareColor = clsBoard->m_vecPositions[intLandingSquare].ReturnPieceColor();
+
+			if (chrLandingSquarePiece == '-' || (chrLandingSquarePiece != '-' && chrLandingSquarePiece != 'K' && blnLandingSquareColor == !*blnWhiteOrBlackTurn))
+			{
+				// now that we know that this potential square for the king is a possible move, we check it to see if Check would result from moving there
+				if (clsBoard->IsKingInCheck(*blnWhiteOrBlackTurn, intKingsReach[intIndex])) { IsInCheckmate = true; }
+				else { IsInCheckmate = false; break; } // break when first king's target to-move-to square comes back as not resulting in check
+			}
+		}
+	}
+
+	if (IsInCheckmate)
+	{
+		cout << strCurrentPlayer << " is in checkmate." << endl;
+
+		do
+		{
+			cout << "New game? (Y/N): ";
+			cin >> strInput;
+		} while (strInput != "Y" && strInput != "y" && strInput != "N" && strInput != "n");
+		
+		if (strInput == "Y" || strInput == "y")
+		{
+			*strView = "new";
+			*clsBoard = *clsNewBoard; // reset the game board
+			*blnWhiteOrBlackTurn = true; // set to white's move
+		}
+		else
+		{
+			*strView = "menu";
+		}
+	}
+
+	return IsInCheckmate;
 }
 
 
